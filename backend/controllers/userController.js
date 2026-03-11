@@ -260,6 +260,28 @@ const updatePassword = tryCatch(async (req, res) => {
   });
 });
 
+const getAllUsers = tryCatch(async (req, res) => {
+  const currentUserId = req.user?._id;
+
+  if (!currentUserId) {
+    return res
+      .status(401)
+      .json({ code: 401, error: "Vui lòng đăng nhập để tiếp tục" });
+  }
+
+  const search = req.query.search || "";
+
+  const users = await User.find({
+    _id: { $ne: currentUserId },
+    name: { $options: "i", $regex: search },
+  }).select("-password");
+
+  return res.status(200).json({
+    code: 200,
+    users,
+  });
+});
+
 export {
   myProfile,
   userProfile,
@@ -267,4 +289,5 @@ export {
   userFollowerAndFollowingData,
   updateProfile,
   updatePassword,
+  getAllUsers,
 };

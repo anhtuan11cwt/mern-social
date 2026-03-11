@@ -108,7 +108,15 @@ export const getAllChats = async (req, res) => {
       .sort({ updatedAt: -1 })
       .populate("users", "_id name profilePic");
 
-    return res.status(200).json({ code: 200, data: chats });
+    const filteredChats = chats.map((chat) => {
+      const chatObj = chat.toObject();
+      chatObj.users = chatObj.users.filter(
+        (user) => user._id.toString() !== currentUserId.toString(),
+      );
+      return chatObj;
+    });
+
+    return res.status(200).json({ code: 200, data: filteredChats });
   } catch {
     return res
       .status(500)
