@@ -1,11 +1,13 @@
 import dotenv from "dotenv";
 import express from "express";
+import { configureCloudinary } from "./config/cloudinary.js";
 import { connectDb } from "./database/db.js";
 import authRoutes from "./routes/authRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
 dotenv.config();
+configureCloudinary();
 
 const app = express();
 const PORT = process.env.PORT || 7000;
