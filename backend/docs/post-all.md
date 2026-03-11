@@ -2,7 +2,7 @@
 
 ### Mục tiêu
 
-Endpoint này trả về danh sách tất cả bài viết dạng `post` và `reel`, sắp xếp theo thời gian tạo giảm dần, kèm thông tin chủ sở hữu (populate `owner`).
+Endpoint này trả về danh sách tất cả bài viết dạng `post` và `reel`, sắp xếp theo thời gian tạo giảm dần, kèm thông tin chủ sở hữu (populate `owner`) nhưng **ẩn trường mật khẩu** để đảm bảo bảo mật dữ liệu.
 
 ### Tóm tắt API
 
@@ -31,7 +31,8 @@ Trả về 2 mảng riêng biệt cho `posts` (type = `"post"`) và `reels` (typ
       "owner": {
         "_id": "66f0b7c2c7b7b7b7b7b7b7b7",
         "name": "Nguyễn Văn A",
-        "email": "a@example.com"
+        "email": "a@example.com",
+        "gender": "male"
       },
       "post": {
         "id": "mern-social/posts/img1",
@@ -51,7 +52,8 @@ Trả về 2 mảng riêng biệt cho `posts` (type = `"post"`) và `reels` (typ
       "owner": {
         "_id": "66f0b7c2c7b7b7b7b7b7b7b7",
         "name": "Nguyễn Văn A",
-        "email": "a@example.com"
+        "email": "a@example.com",
+        "gender": "male"
       },
       "post": {
         "id": "mern-social/posts/video1",
@@ -86,13 +88,15 @@ Controller hiện tại chủ yếu có thể phát sinh lỗi từ:
 
 ```js
 const posts = await Post.find({ type: "post" })
-  .populate("owner")
+  .populate("owner", "-password")
   .sort({ createdAt: -1 });
 
 const reels = await Post.find({ type: "reel" })
-  .populate("owner")
+  .populate("owner", "-password")
   .sort({ createdAt: -1 });
 ```
+
+- Việc sử dụng `"-password"` trong `populate` giúp trả về đầy đủ thông tin user cần thiết (ví dụ: `_id`, `name`, `email`, `gender`) nhưng **không bao gồm mật khẩu**, đảm bảo dữ liệu nhạy cảm không bị lộ ra client.
 
 - Cả hai mảng đều được trả về trong cùng một response.
 
@@ -106,4 +110,6 @@ const reels = await Post.find({ type: "reel" })
 
 - [Tạo bài viết mới](./post-new.md)
 - [Xoá bài viết](./post-delete.md)
+- [Like và unlike bài viết](./post-like.md)
+- [Bình luận bài viết](./post-comment.md)
 - [Đăng nhập](./login.md)
