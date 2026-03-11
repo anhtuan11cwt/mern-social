@@ -88,41 +88,6 @@ CLOUDINARY_API_KEY=your_api_key
 CLOUDINARY_API_SECRET=your_api_secret
 ```
 
-### Ví dụ
-
-#### curl
-
-```bash
-curl -X POST "http://localhost:7000/api/auth/register" \
-  -H "Accept: application/json" \
-  -F "name=Nguyễn Văn A" \
-  -F "email=a@example.com" \
-  -F "password=secret123" \
-  -F "gender=male" \
-  -F "file=@./avatar.jpg"
-```
-
-#### JavaScript (fetch)
-
-```js
-const form = new FormData();
-form.append("name", "Nguyễn Văn A");
-form.append("email", "a@example.com");
-form.append("password", "secret123");
-form.append("gender", "male");
-form.append("file", fileInput.files[0]);
-
-const res = await fetch("http://localhost:7000/api/auth/register", {
-  method: "POST",
-  body: form,
-  credentials: "include" // để nhận cookie token
-});
-
-const data = await res.json();
-if (!res.ok) throw new Error(data?.error ?? "Đăng ký thất bại");
-console.log(data);
-```
-
 ### Tham chiếu mã nguồn
 
 - Route: [`backend/routes/authRoutes.js`](../routes/authRoutes.js)
@@ -136,4 +101,8 @@ console.log(data);
 
 - Tài liệu upload Cloudinary: `https://cloudinary.com/documentation/image_upload_api_reference`
 - Tài liệu Multer: `https://github.com/expressjs/multer`
+- [Đăng nhập](./login.md)
+- [Đăng xuất](./logout.md)
+- [Hồ sơ của tôi](./user-me.md)
+- [Hồ sơ người dùng theo ID](./user-profile.md)
 

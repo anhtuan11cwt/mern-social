@@ -1,3 +1,4 @@
+import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import express from "express";
 import { configureCloudinary } from "./config/cloudinary.js";
@@ -15,6 +16,7 @@ const PORT = process.env.PORT || 7000;
 connectDb();
 
 app.use(express.json());
+app.use(cookieParser());
 
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
