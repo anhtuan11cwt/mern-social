@@ -1,1 +1,9 @@
 @import "tailwindcss";
+
+.custom-input {
+  @apply bg-gray-100 rounded-lg p-3 w-full outline-none border border-transparent focus:border-blue-600 transition-colors duration-200;
+}
+
+.auth-btn {
+  @apply w-full py-3 rounded-lg bg-gradient-to-r from-blue-600 to-yellow-500 text-white font-semibold transition-all duration-200 hover:opacity-90 cursor-pointer;
+}
