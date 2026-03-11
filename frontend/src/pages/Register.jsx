@@ -1,6 +1,7 @@
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useUserData } from "../hooks/useUserData";
 
 const Register = () => {
   const [name, setName] = useState("");
@@ -10,6 +11,8 @@ const Register = () => {
   const [file, setFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const { loading, registerUser } = useUserData();
 
   const fileHandler = (e) => {
     const selectedFile = e.target.files[0];
@@ -25,8 +28,25 @@ const Register = () => {
 
   const submitHandler = (e) => {
     e.preventDefault();
-    console.log({ email, file, gender, name, password });
+    if (!name || !email || !password || !gender || !file) {
+      return;
+    }
+    const formData = new FormData();
+    formData.append("name", name);
+    formData.append("email", email);
+    formData.append("password", password);
+    formData.append("gender", gender);
+    formData.append("file", file);
+    registerUser(formData, navigate);
   };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-gray-100">
+        <h1 className="text-2xl font-semibold text-gray-700">Đang tải...</h1>
+      </div>
+    );
+  }
 
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">
@@ -127,8 +147,8 @@ const Register = () => {
           )}
         </div>
 
-        <button className="auth-btn mt-2" type="submit">
-          Đăng ký
+        <button className="auth-btn mt-2" disabled={loading} type="submit">
+          {loading ? "Đang đăng ký..." : "Đăng ký"}
         </button>
 
         <p className="text-center text-gray-600 mt-2">

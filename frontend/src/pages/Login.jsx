@@ -1,15 +1,18 @@
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useUserData } from "../hooks/useUserData";
 
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const navigate = useNavigate();
+  const { loading, loginUser } = useUserData();
 
   const submitHandler = (e) => {
     e.preventDefault();
-    console.log({ email, password });
+    loginUser({ email, navigate, password });
   };
 
   return (
@@ -59,8 +62,8 @@ const Login = () => {
           </div>
         </div>
 
-        <button className="auth-btn mt-2" type="submit">
-          Đăng nhập
+        <button className="auth-btn mt-2" disabled={loading} type="submit">
+          {loading ? "Đang đăng nhập..." : "Đăng nhập"}
         </button>
 
         <p className="text-center text-gray-600 mt-2">
