@@ -55,10 +55,14 @@ const newPost = tryCatch(async (req, res) => {
     type,
   });
 
+  const populatedPost = await Post.findById(createdPost._id)
+    .populate("owner", "-password")
+    .populate("comments.user", "-password");
+
   return res.status(201).json({
     code: 201,
     message: "Bài viết đã được tạo",
-    post: createdPost,
+    post: populatedPost,
   });
 });
 
@@ -108,10 +112,12 @@ const deletePost = tryCatch(async (req, res) => {
 const getAllPost = tryCatch(async (_req, res) => {
   const posts = await Post.find({ type: "post" })
     .populate("owner", "-password")
+    .populate("comments.user", "-password")
     .sort({ createdAt: -1 });
 
   const reels = await Post.find({ type: "reel" })
     .populate("owner", "-password")
+    .populate("comments.user", "-password")
     .sort({ createdAt: -1 });
 
   return res.status(200).json({

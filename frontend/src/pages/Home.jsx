@@ -16,9 +16,12 @@ const Home = () => {
         <AddPost onPostCreated={handlePostCreated} type="post" />
         <div className="mt-8 space-y-4">
           {posts?.length ? (
-            posts.map((post) => (
-              <PostCard key={post?._id || post?.id} post={post} />
-            ))
+            posts.map((post, index) => {
+              // Đảm bảo key unique: sử dụng _id hoặc id, nếu không có thì dùng index
+              const postId = post?._id || post?.id;
+              const uniqueKey = postId ? postId.toString() : `post-${index}`;
+              return <PostCard key={uniqueKey} post={post} />;
+            })
           ) : (
             <p className="text-center text-gray-500 mt-4">
               Chưa có bài đăng nào.

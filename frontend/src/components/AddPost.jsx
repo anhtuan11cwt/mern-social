@@ -1,13 +1,14 @@
-import axios from "axios";
 import { X } from "lucide-react";
-import { useState } from "react";
-import { toast } from "react-hot-toast";
+import { useContext, useState } from "react";
+import { PostContext } from "../context/PostContext.js";
 
 const AddPost = ({ type = "post", onPostCreated }) => {
   const [caption, setCaption] = useState("");
   const [file, setFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
   const [loading, setLoading] = useState(false);
+
+  const { addPost } = useContext(PostContext);
 
   const isReel = type === "reel";
 
@@ -23,7 +24,6 @@ const AddPost = ({ type = "post", onPostCreated }) => {
   const submitHandler = async (e) => {
     e.preventDefault();
     if (!file) {
-      toast.error("Vui lòng chọn tệp");
       return;
     }
 
@@ -33,23 +33,17 @@ const AddPost = ({ type = "post", onPostCreated }) => {
       formData.append("caption", caption);
       formData.append("file", file);
 
-      const endpoint = isReel ? "/api/post/new?type=reel" : "/api/post/new";
-      const { data } = await axios.post(endpoint, formData, {
-        headers: {
-          "Content-Type": "multipart/form-data",
-        },
+      const createdPost = await addPost({
+        formData,
+        setCaption,
+        setFile,
+        setFilePreview,
+        type,
       });
 
-      toast.success(data.message || "Đăng bài thành công");
-      setCaption("");
-      setFile(null);
-      setFilePreview(null);
-      if (onPostCreated) {
-        onPostCreated(data.post);
+      if (onPostCreated && createdPost) {
+        onPostCreated(createdPost);
       }
-    } catch (error) {
-      const message = error?.response?.data?.error || "Đăng bài thất bại";
-      toast.error(message);
     } finally {
       setLoading(false);
     }

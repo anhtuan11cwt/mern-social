@@ -1,48 +1,99 @@
+import { useEffect, useRef, useState } from "react";
+import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 import AddPost from "../components/AddPost";
+import PostCard from "../components/PostCard";
 import { usePostData } from "../hooks/usePostData";
 
 const Reels = () => {
   const { reels, handlePostCreated } = usePostData();
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const videoRef = useRef(null);
+
+  const previousReel = () => {
+    if (currentIndex === 0) return;
+    setCurrentIndex(currentIndex - 1);
+  };
+
+  const nextReel = () => {
+    if (currentIndex === reels.length - 1) return;
+    setCurrentIndex(currentIndex + 1);
+  };
+
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.currentTime = 0;
+      videoRef.current.play().catch(() => {});
+    }
+  }, []);
+
+  if (!reels || reels.length === 0) {
+    return (
+      <div className="min-h-screen bg-gray-100 pb-16 flex items-center justify-center">
+        <div className="w-full max-w-[500px] md:max-w-[450px] px-4">
+          <h1 className="text-2xl font-bold text-gray-800 text-center mb-6">
+            Reel
+          </h1>
+          <AddPost onPostCreated={handlePostCreated} type="reel" />
+          <div className="text-center mt-8">
+            <p className="text-gray-500">Chưa có reel nào.</p>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-100 pb-16">
-      <div className="max-w-4xl mx-auto px-4 py-8">
-        <h1 className="text-2xl font-bold text-gray-800 mb-6">Reel</h1>
-        <AddPost onPostCreated={handlePostCreated} type="reel" />
-        <div className="mt-8 space-y-6">
-          {reels?.length ? (
-            reels.map((reel) => {
-              const videoUrl =
-                reel?.post?.url ||
-                reel?.videoUrl ||
-                reel?.fileUrl ||
-                reel?.url ||
-                "";
+    <div className="min-h-screen bg-gray-100 pb-16 flex items-center justify-center">
+      <div className="w-full max-w-[500px] md:max-w-[450px] px-4">
+        <h1 className="text-2xl font-bold text-gray-800 text-center mb-6">
+          Reel
+        </h1>
 
-              return (
-                <div
-                  className="bg-white rounded-lg shadow-sm p-4"
-                  key={reel?._id || reel?.id}
-                >
-                  <p className="text-sm text-gray-700 mb-3">
-                    {reel?.caption || ""}
-                  </p>
-                  {videoUrl ? (
-                    <video
-                      className="w-full max-h-[500px] rounded-md"
-                      controls
-                      controlsList="nodownload"
-                      src={videoUrl}
-                    >
-                      <track kind="captions" />
-                    </video>
-                  ) : null}
-                </div>
-              );
-            })
-          ) : (
-            <p className="text-center text-gray-500 mt-4">Chưa có reel nào.</p>
+        <AddPost onPostCreated={handlePostCreated} type="reel" />
+
+        <div className="relative mt-8">
+          {currentIndex > 0 && (
+            <button
+              aria-label="Reel trước"
+              className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-500/80 hover:bg-gray-500 text-white p-3 rounded-full cursor-pointer transition-colors duration-200 z-10"
+              onClick={previousReel}
+              type="button"
+            >
+              <FaArrowUp className="w-4 h-4" />
+            </button>
           )}
+
+          <div className="flex items-center justify-center">
+            <PostCard
+              post={{ ...reels[currentIndex], type: "reel" }}
+              ref={videoRef}
+            />
+          </div>
+
+          {currentIndex < reels.length - 1 && (
+            <button
+              aria-label="Reel tiếp theo"
+              className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 bg-gray-500/80 hover:bg-gray-500 text-white p-3 rounded-full cursor-pointer transition-colors duration-200 z-10"
+              onClick={nextReel}
+              type="button"
+            >
+              <FaArrowDown className="w-4 h-4" />
+            </button>
+          )}
+        </div>
+
+        <div className="flex justify-center gap-2 mt-8">
+          {reels.map((reel, index) => (
+            <button
+              aria-label={`Reel ${index + 1}`}
+              className={`w-2 h-2 rounded-full transition-colors duration-200 ${
+                index === currentIndex ? "bg-gray-800" : "bg-gray-400"
+              }`}
+              key={reel._id || `reel-${index}`}
+              onClick={() => setCurrentIndex(index)}
+              type="button"
+            />
+          ))}
         </div>
       </div>
     </div>
