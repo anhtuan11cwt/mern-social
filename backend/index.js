@@ -4,6 +4,7 @@ import express from "express";
 import { configureCloudinary } from "./config/cloudinary.js";
 import { connectDb } from "./database/db.js";
 import authRoutes from "./routes/authRoutes.js";
+import messageRoutes from "./routes/messageRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
 
@@ -21,6 +22,7 @@ app.use(cookieParser());
 app.use("/api/auth", authRoutes);
 app.use("/api/user", userRoutes);
 app.use("/api/post", postRoutes);
+app.use("/api/messages", messageRoutes);
 
 app.get("/", (_req, res) => {
   res.send("Máy chủ đang hoạt động");
