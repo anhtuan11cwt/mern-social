@@ -74,4 +74,8 @@ Các lỗi phổ biến:
 ### Tài liệu liên quan
 
 - [Hồ sơ của tôi](./user-me.md)
+- [Dữ liệu follower/following của user](./user-followdata.md)
+- [Theo dõi / Bỏ theo dõi user](./user-follow.md)
+- [Cập nhật hồ sơ user](./user-update-profile.md)
+- [Cập nhật mật khẩu user](./user-update-password.md)
 
