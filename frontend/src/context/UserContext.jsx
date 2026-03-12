@@ -35,11 +35,13 @@ export const UserContextProvider = ({ children }) => {
       setIsAuth(true);
       toast.success("Đăng nhập thành công");
       navigate("/");
+      return true;
     } catch (error) {
       const message =
         error?.response?.data?.error || "Đăng nhập thất bại, vui lòng thử lại";
       toast.error(message);
       setIsAuth(false);
+      return false;
     } finally {
       setLoading(false);
     }
@@ -57,11 +59,13 @@ export const UserContextProvider = ({ children }) => {
       setIsAuth(true);
       toast.success("Đăng ký thành công");
       navigate("/");
+      return true;
     } catch (error) {
       const message =
         error?.response?.data?.error || "Đăng ký thất bại, vui lòng thử lại";
       toast.error(message);
       setIsAuth(false);
+      return false;
     } finally {
       setLoading(false);
     }

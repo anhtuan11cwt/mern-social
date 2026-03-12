@@ -15,7 +15,7 @@ const followData = async (id) => {
 
 const Account = ({ user }) => {
   const { logoutUser } = useUserData();
-  const { posts, reels } = usePostData();
+  const { posts, reels, loading } = usePostData();
   const navigate = useNavigate();
   const [type, setType] = useState("post");
   const [currentReelIndex, setCurrentReelIndex] = useState(0);
@@ -57,6 +57,10 @@ const Account = ({ user }) => {
   }, [user?._id]);
 
   if (!user) {
+    return <Loading />;
+  }
+
+  if (loading) {
     return <Loading />;
   }
 

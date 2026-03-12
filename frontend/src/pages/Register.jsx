@@ -1,6 +1,7 @@
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { usePostData } from "../hooks/usePostData";
 import { useUserData } from "../hooks/useUserData";
 
 const Register = () => {
@@ -13,6 +14,7 @@ const Register = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { loading, registerUser } = useUserData();
+  const { fetchPosts } = usePostData();
 
   const fileHandler = (e) => {
     const selectedFile = e.target.files[0];
@@ -26,7 +28,7 @@ const Register = () => {
     }
   };
 
-  const submitHandler = (e) => {
+  const submitHandler = async (e) => {
     e.preventDefault();
     if (!name || !email || !password || !gender || !file) {
       return;
@@ -37,7 +39,10 @@ const Register = () => {
     formData.append("password", password);
     formData.append("gender", gender);
     formData.append("file", file);
-    registerUser(formData, navigate);
+    const success = await registerUser(formData, navigate);
+    if (success) {
+      await fetchPosts();
+    }
   };
 
   if (loading) {

@@ -1,6 +1,7 @@
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { usePostData } from "../hooks/usePostData";
 import { useUserData } from "../hooks/useUserData";
 
 const Login = () => {
@@ -9,10 +10,14 @@ const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
   const { loading, loginUser } = useUserData();
+  const { fetchPosts } = usePostData();
 
-  const submitHandler = (e) => {
+  const submitHandler = async (e) => {
     e.preventDefault();
-    loginUser({ email, navigate, password });
+    const success = await loginUser({ email, navigate, password });
+    if (success) {
+      await fetchPosts();
+    }
   };
 
   return (

@@ -1,18 +1,67 @@
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 import { forwardRef, useState } from "react";
+import { toast } from "react-hot-toast";
 import { IoChatbubble, IoHeart, IoHeartOutline, IoSend } from "react-icons/io5";
 import { MdDelete } from "react-icons/md";
 import { Link } from "react-router-dom";
 import { usePostData } from "../hooks/usePostData";
 import { useUserData } from "../hooks/useUserData";
+import SimpleModal from "./SimpleModal";
 
 const PostCard = forwardRef(({ post }, ref) => {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState("");
   const [likeOptimistic, setLikeOptimistic] = useState(null);
-  const { addComment, deleteComment, likePost } = usePostData();
+  const [showModal, setShowModal] = useState(false);
+  const [showInput, setShowInput] = useState(false);
+  const [editCaption, setEditCaption] = useState(post?.caption || "");
+  const {
+    addComment,
+    deleteComment,
+    likePost,
+    deletePost,
+    updateCaption,
+    loading,
+  } = usePostData();
   const { user } = useUserData();
+
+  const closeModal = () => setShowModal(false);
+
+  const handleDeletePost = async () => {
+    if (window.confirm("Bạn có chắc chắn muốn xóa bài viết này?")) {
+      try {
+        await deletePost(post._id);
+        closeModal();
+      } catch (error) {
+        console.error("Lỗi khi xóa bài viết:", error);
+      }
+    }
+  };
+
+  const handleEditCaption = () => {
+    setShowModal(false);
+    setShowInput(true);
+  };
+
+  const handleUpdateCaption = async () => {
+    if (!editCaption.trim()) {
+      toast.error("Caption không được để trống");
+      return;
+    }
+
+    try {
+      await updateCaption(post._id, editCaption);
+      setShowInput(false);
+    } catch (error) {
+      console.error("Lỗi khi cập nhật caption:", error);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditCaption(post?.caption || "");
+    setShowInput(false);
+  };
 
   const likes = post.likes || [];
   const isLiked =
@@ -109,23 +158,57 @@ const PostCard = forwardRef(({ post }, ref) => {
           </p>
         </div>
         {owner?._id && user?._id && owner._id === user._id && (
-          <button
-            aria-label="Tùy chọn thêm"
-            className="text-gray-400 hover:text-gray-600 cursor-pointer p-1"
-            type="button"
-          >
-            <MoreHorizontal className="w-5 h-5" />
-          </button>
+          <div className="relative">
+            <button
+              aria-label="Tùy chọn thêm"
+              className="text-gray-400 hover:text-gray-600 cursor-pointer p-1"
+              onClick={() => setShowModal(!showModal)}
+              type="button"
+            >
+              <MoreHorizontal className="w-5 h-5" />
+            </button>
+            <SimpleModal
+              isOpen={showModal}
+              onClose={closeModal}
+              position="right"
+            >
+              <button
+                className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 transition-colors"
+                onClick={handleEditCaption}
+                type="button"
+              >
+                Chỉnh sửa
+              </button>
+              <button
+                className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 transition-colors border-t border-gray-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                disabled={loading}
+                onClick={handleDeletePost}
+                type="button"
+              >
+                {loading ? "Đang xóa..." : "Xóa"}
+              </button>
+            </SimpleModal>
+          </div>
         )}
       </div>
 
-      {post?.caption && (
+      {showInput ? (
+        <div className="px-4 pb-3">
+          <textarea
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm resize-none"
+            onChange={(e) => setEditCaption(e.target.value)}
+            placeholder="Nhập caption..."
+            rows="3"
+            value={editCaption}
+          />
+        </div>
+      ) : post?.caption ? (
         <div className="px-4 pb-3">
           <p className="text-gray-700 text-sm whitespace-pre-wrap">
             {post.caption}
           </p>
         </div>
-      )}
+      ) : null}
 
       {imageUrl && (
         <div className="w-full">
@@ -215,10 +298,16 @@ const PostCard = forwardRef(({ post }, ref) => {
 
                       const handleDeleteComment = async () => {
                         if (!comment?._id) return;
-                        try {
-                          await deleteComment(post._id, comment._id);
-                        } catch (error) {
-                          console.error("Lỗi khi xóa bình luận:", error);
+                        if (
+                          window.confirm(
+                            "Bạn có chắc chắn muốn xóa bình luận này?",
+                          )
+                        ) {
+                          try {
+                            await deleteComment(post._id, comment._id);
+                          } catch (error) {
+                            console.error("Lỗi khi xóa bình luận:", error);
+                          }
                         }
                       };
 
@@ -262,9 +351,18 @@ const PostCard = forwardRef(({ post }, ref) => {
                             </div>
                             {canDeleteComment && (
                               <button
-                                aria-label="Xóa bình luận"
-                                className="text-red-500 hover:text-red-600 p-1 cursor-pointer"
+                                aria-label={
+                                  commenterId === user._id
+                                    ? "Xóa bình luận của bạn"
+                                    : "Xóa bình luận (bạn là chủ bài viết)"
+                                }
+                                className="text-red-500 hover:text-red-600 p-1 cursor-pointer transition-colors"
                                 onClick={handleDeleteComment}
+                                title={
+                                  commenterId === user._id
+                                    ? "Xóa bình luận của bạn"
+                                    : "Xóa bình luận (bạn là chủ bài viết)"
+                                }
                                 type="button"
                               >
                                 <MdDelete className="w-4 h-4" />
@@ -298,6 +396,26 @@ const PostCard = forwardRef(({ post }, ref) => {
                 <IoSend className="w-5 h-5" />
               </button>
             </form>
+          </div>
+        )}
+
+        {showInput && (
+          <div className="mt-4 pt-4 border-t border-gray-100 flex gap-2">
+            <button
+              className="flex-1 bg-blue-500 text-white px-3 py-2 rounded-md hover:bg-blue-600 transition-colors text-sm font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={loading}
+              onClick={handleUpdateCaption}
+              type="button"
+            >
+              {loading ? "Đang cập nhật..." : "Cập nhật"}
+            </button>
+            <button
+              className="flex-1 bg-red-500 text-white px-3 py-2 rounded-md hover:bg-red-600 transition-colors text-sm font-medium"
+              onClick={handleCancelEdit}
+              type="button"
+            >
+              Hủy
+            </button>
           </div>
         )}
       </div>

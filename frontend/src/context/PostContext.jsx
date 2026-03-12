@@ -12,9 +12,16 @@ export const PostContextProvider = ({ children }) => {
   const [loading, setLoading] = useState(true);
   const [addLoading, setAddLoading] = useState(false);
   const [hasFetched, setHasFetched] = useState(false);
-  const { user } = useUserData();
+  const { user, isAuth, loading: userLoading } = useUserData();
 
   const fetchPosts = useCallback(async () => {
+    if (!isAuth) {
+      setPosts([]);
+      setReels([]);
+      setHasFetched(false);
+      setLoading(false);
+      return;
+    }
     if (!hasFetched) {
       setLoading(true);
     }
@@ -30,7 +37,7 @@ export const PostContextProvider = ({ children }) => {
       setHasFetched(true);
       setLoading(false);
     }
-  }, [hasFetched]);
+  }, [hasFetched, isAuth]);
 
   const addPost = async ({
     formData,
@@ -149,9 +156,9 @@ export const PostContextProvider = ({ children }) => {
     }
 
     try {
-      const { data } = await axios.delete(`/api/post/comment/${postId}`, {
-        data: { commentId },
-      });
+      const { data } = await axios.delete(
+        `/api/post/comment/${postId}?commentId=${commentId}`,
+      );
 
       toast.success(data?.message || "Đã xóa bình luận");
       await fetchPosts();
@@ -162,9 +169,57 @@ export const PostContextProvider = ({ children }) => {
     }
   };
 
+  const deletePost = async (id) => {
+    if (!id) {
+      toast.error("Thiếu thông tin để xóa bài viết");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data } = await axios.delete(`/api/post/${id}`);
+      toast.success(data?.message || "Đã xóa bài viết");
+      await fetchPosts();
+    } catch (error) {
+      const message = error?.response?.data?.error || "Không thể xóa bài viết";
+      toast.error(message);
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const updateCaption = async (id, caption) => {
+    if (!id) {
+      toast.error("Thiếu thông tin để cập nhật bài viết");
+      return;
+    }
+
+    try {
+      const { data } = await axios.put(`/api/post/${id}`, { caption });
+      toast.success(data?.message || "Đã cập nhật bài viết");
+
+      // Cập nhật cục bộ thay vì fetch lại toàn bộ
+      setPosts((prev) =>
+        prev.map((post) => (post._id === id ? { ...post, caption } : post)),
+      );
+      setReels((prev) =>
+        prev.map((reel) => (reel._id === id ? { ...reel, caption } : reel)),
+      );
+    } catch (error) {
+      const message =
+        error?.response?.data?.error || "Không thể cập nhật bài viết";
+      toast.error(message);
+      throw error;
+    }
+  };
+
   useEffect(() => {
+    if (!isAuth || userLoading) {
+      return;
+    }
     fetchPosts();
-  }, [fetchPosts]);
+  }, [fetchPosts, isAuth, userLoading]);
 
   return (
     <PostContext.Provider
@@ -173,6 +228,7 @@ export const PostContextProvider = ({ children }) => {
         addLoading,
         addPost,
         deleteComment,
+        deletePost,
         fetchPosts,
         handlePostCreated,
         likePost,
@@ -181,6 +237,7 @@ export const PostContextProvider = ({ children }) => {
         reels,
         setPosts,
         setReels,
+        updateCaption,
       }}
     >
       {children}
