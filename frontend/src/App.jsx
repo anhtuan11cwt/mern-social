@@ -8,6 +8,7 @@ import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Reels from "./pages/Reels";
 import Register from "./pages/Register";
+import Search from "./pages/Search";
 import UserAccount from "./pages/UserAccount";
 
 function App() {
@@ -48,13 +49,7 @@ function App() {
           path="/user/:id"
         />
         <Route
-          element={
-            isAuth ? (
-              <div className="pb-16">Trang Tìm kiếm</div>
-            ) : (
-              <Navigate replace to="/login" />
-            )
-          }
+          element={isAuth ? <Search /> : <Navigate replace to="/login" />}
           path="/search"
         />
         <Route

@@ -105,6 +105,41 @@ export const UserContextProvider = ({ children }) => {
     }
   };
 
+  const updateProfilePic = async (formData, userId) => {
+    try {
+      await axios.put(`/api/user/${userId}`, formData, {
+        headers: {
+          "Content-Type": "multipart/form-data",
+        },
+      });
+      toast.success("Cập nhật ảnh đại diện thành công");
+      await fetchUser();
+      return true;
+    } catch (error) {
+      const message =
+        error?.response?.data?.error ||
+        "Cập nhật ảnh đại diện thất bại, vui lòng thử lại";
+      toast.error(message);
+      return false;
+    }
+  };
+
+  const updateProfileName = async (userId, newName, setShowInput) => {
+    try {
+      await axios.put(`/api/user/${userId}`, { name: newName });
+      toast.success("Cập nhật tên thành công");
+      await fetchUser();
+      setShowInput(false);
+      return true;
+    } catch (error) {
+      const message =
+        error?.response?.data?.error ||
+        "Cập nhật tên thất bại, vui lòng thử lại";
+      toast.error(message);
+      return false;
+    }
+  };
+
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
@@ -122,6 +157,8 @@ export const UserContextProvider = ({ children }) => {
         setIsAuth,
         setLoading,
         setUser,
+        updateProfileName,
+        updateProfilePic,
         user,
       }}
     >
