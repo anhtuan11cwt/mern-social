@@ -1,11 +1,16 @@
 import AddPost from "../components/AddPost";
+import { Loading } from "../components/loading";
 import PostCard from "../components/PostCard";
 import { usePostData } from "../hooks/usePostData";
 import { useUserData } from "../hooks/useUserData";
 
 const Home = () => {
   const { user } = useUserData();
-  const { posts, handlePostCreated } = usePostData();
+  const { posts, handlePostCreated, loading } = usePostData();
+
+  if (loading) {
+    return <Loading />;
+  }
 
   return (
     <div className="min-h-screen bg-gray-100 pb-16">

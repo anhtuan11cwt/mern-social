@@ -1,14 +1,14 @@
 import { X } from "lucide-react";
 import { useContext, useState } from "react";
 import { PostContext } from "../context/PostContext.js";
+import { LoadingAnimation } from "./loading";
 
 const AddPost = ({ type = "post", onPostCreated }) => {
   const [caption, setCaption] = useState("");
   const [file, setFile] = useState(null);
   const [filePreview, setFilePreview] = useState(null);
-  const [loading, setLoading] = useState(false);
 
-  const { addPost } = useContext(PostContext);
+  const { addPost, addLoading } = useContext(PostContext);
 
   const isReel = type === "reel";
 
@@ -27,25 +27,20 @@ const AddPost = ({ type = "post", onPostCreated }) => {
       return;
     }
 
-    setLoading(true);
-    try {
-      const formData = new FormData();
-      formData.append("caption", caption);
-      formData.append("file", file);
+    const formData = new FormData();
+    formData.append("caption", caption);
+    formData.append("file", file);
 
-      const createdPost = await addPost({
-        formData,
-        setCaption,
-        setFile,
-        setFilePreview,
-        type,
-      });
+    const createdPost = await addPost({
+      formData,
+      setCaption,
+      setFile,
+      setFilePreview,
+      type,
+    });
 
-      if (onPostCreated && createdPost) {
-        onPostCreated(createdPost);
-      }
-    } finally {
-      setLoading(false);
+    if (onPostCreated && createdPost) {
+      onPostCreated(createdPost);
     }
   };
 
@@ -119,11 +114,20 @@ const AddPost = ({ type = "post", onPostCreated }) => {
         )}
 
         <button
-          className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer"
-          disabled={loading || !file}
+          className="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 disabled:bg-gray-400 disabled:cursor-not-allowed transition-colors duration-200 cursor-pointer flex items-center justify-center gap-2"
+          disabled={addLoading || !file}
           type="submit"
         >
-          {loading ? "Đang đăng..." : isReel ? "Đăng Reel" : "Đăng bài"}
+          {addLoading ? (
+            <>
+              <LoadingAnimation />
+              <span>Đang đăng...</span>
+            </>
+          ) : isReel ? (
+            "Đăng Reel"
+          ) : (
+            "Đăng bài"
+          )}
         </button>
       </form>
     </div>

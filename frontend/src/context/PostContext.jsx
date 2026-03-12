@@ -9,11 +9,15 @@ axios.defaults.withCredentials = true;
 export const PostContextProvider = ({ children }) => {
   const [posts, setPosts] = useState([]);
   const [reels, setReels] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [addLoading, setAddLoading] = useState(false);
+  const [hasFetched, setHasFetched] = useState(false);
   const { user } = useUserData();
 
   const fetchPosts = useCallback(async () => {
-    setLoading(true);
+    if (!hasFetched) {
+      setLoading(true);
+    }
     try {
       const { data } = await axios.get("/api/post/all");
       setPosts(data?.posts || []);
@@ -23,9 +27,10 @@ export const PostContextProvider = ({ children }) => {
         error?.response?.data?.error || "Không thể tải danh sách bài đăng";
       toast.error(message);
     } finally {
+      setHasFetched(true);
       setLoading(false);
     }
-  }, []);
+  }, [hasFetched]);
 
   const addPost = async ({
     formData,
@@ -39,6 +44,7 @@ export const PostContextProvider = ({ children }) => {
       return;
     }
 
+    setAddLoading(true);
     try {
       const endpoint = `/api/post/new?type=${encodeURIComponent(type)}`;
       const { data } = await axios.post(endpoint, formData, {
@@ -62,6 +68,8 @@ export const PostContextProvider = ({ children }) => {
       const message = error?.response?.data?.error || "Đăng bài thất bại";
       toast.error(message);
       throw error;
+    } finally {
+      setAddLoading(false);
     }
   };
 
@@ -134,6 +142,26 @@ export const PostContextProvider = ({ children }) => {
     }
   };
 
+  const deleteComment = async (postId, commentId) => {
+    if (!postId || !commentId) {
+      toast.error("Thiếu thông tin để xóa bình luận");
+      return;
+    }
+
+    try {
+      const { data } = await axios.delete(`/api/post/comment/${postId}`, {
+        data: { commentId },
+      });
+
+      toast.success(data?.message || "Đã xóa bình luận");
+      await fetchPosts();
+    } catch (error) {
+      const message = error?.response?.data?.error || "Không thể xóa bình luận";
+      toast.error(message);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchPosts();
   }, [fetchPosts]);
@@ -142,7 +170,9 @@ export const PostContextProvider = ({ children }) => {
     <PostContext.Provider
       value={{
         addComment,
+        addLoading,
         addPost,
+        deleteComment,
         fetchPosts,
         handlePostCreated,
         likePost,

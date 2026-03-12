@@ -1,17 +1,43 @@
-import { useState } from "react";
+import axios from "axios";
+import { useEffect, useState } from "react";
+import { toast } from "react-hot-toast";
 import { FaArrowDown, FaArrowUp } from "react-icons/fa";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { Loading } from "../components/loading";
 import PostCard from "../components/PostCard";
 import { usePostData } from "../hooks/usePostData";
 import { useUserData } from "../hooks/useUserData";
 
-const Account = ({ user }) => {
-  const { logoutUser } = useUserData();
-  const { posts, reels } = usePostData();
+const UserAccount = () => {
+  const { id } = useParams();
   const navigate = useNavigate();
+  const { user: currentUser } = useUserData();
+  const { posts, reels } = usePostData();
+  const [user, setUser] = useState(null);
+  const [loading, setLoading] = useState(true);
   const [type, setType] = useState("post");
   const [currentReelIndex, setCurrentReelIndex] = useState(0);
+
+  useEffect(() => {
+    const fetchUser = async () => {
+      setLoading(true);
+      try {
+        const { data } = await axios.get(`/api/user/${id}`);
+        setUser(data.user);
+      } catch (error) {
+        const message =
+          error?.response?.data?.error || "Không thể tải thông tin người dùng";
+        toast.error(message);
+        navigate("/");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (id) {
+      fetchUser();
+    }
+  }, [id, navigate]);
 
   const myPost = posts.filter((post) => post.owner?._id === user?._id);
   const myReels = reels.filter((reel) => reel.owner?._id === user?._id);
@@ -26,9 +52,11 @@ const Account = ({ user }) => {
     setCurrentReelIndex(currentReelIndex + 1);
   };
 
-  const logoutHandler = () => {
-    logoutUser(navigate);
-  };
+  const isOwnProfile = currentUser?._id === user?._id;
+
+  if (loading) {
+    return <Loading />;
+  }
 
   if (!user) {
     return <Loading />;
@@ -74,13 +102,15 @@ const Account = ({ user }) => {
             </div>
           </div>
 
-          <button
-            className="bg-red-500 hover:bg-red-600 px-6 py-2 rounded-lg font-medium text-white transition-colors cursor-pointer"
-            onClick={logoutHandler}
-            type="button"
-          >
-            Đăng xuất
-          </button>
+          {isOwnProfile && (
+            <button
+              className="bg-blue-500 hover:bg-blue-600 px-6 py-2 rounded-lg font-medium text-white transition-colors cursor-pointer"
+              onClick={() => navigate("/account")}
+              type="button"
+            >
+              Chỉnh sửa hồ sơ
+            </button>
+          )}
         </div>
       </div>
 
@@ -164,4 +194,4 @@ const Account = ({ user }) => {
   );
 };
 
-export default Account;
+export default UserAccount;

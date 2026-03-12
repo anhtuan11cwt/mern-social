@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 import AddPost from "../components/AddPost";
+import { Loading } from "../components/loading";
 import PostCard from "../components/PostCard";
 import { usePostData } from "../hooks/usePostData";
 
 const Reels = () => {
-  const { reels, handlePostCreated } = usePostData();
+  const { reels, handlePostCreated, loading } = usePostData();
   const [currentIndex, setCurrentIndex] = useState(0);
   const videoRef = useRef(null);
 
@@ -26,15 +27,19 @@ const Reels = () => {
     }
   }, []);
 
+  if (loading) {
+    return <Loading />;
+  }
+
   if (!reels || reels.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-100 pb-16 flex items-center justify-center">
-        <div className="w-full max-w-[500px] md:max-w-[450px] px-4">
-          <h1 className="text-2xl font-bold text-gray-800 text-center mb-6">
+      <div className="flex justify-center items-center bg-gray-100 pb-16 min-h-screen">
+        <div className="px-4 w-full max-w-[500px] md:max-w-[450px]">
+          <h1 className="mb-6 font-bold text-gray-800 text-2xl text-center">
             Reel
           </h1>
           <AddPost onPostCreated={handlePostCreated} type="reel" />
-          <div className="text-center mt-8">
+          <div className="mt-8 text-center">
             <p className="text-gray-500">Chưa có reel nào.</p>
           </div>
         </div>
@@ -43,43 +48,45 @@ const Reels = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gray-100 pb-16 flex items-center justify-center">
-      <div className="w-full max-w-[500px] md:max-w-[450px] px-4">
-        <h1 className="text-2xl font-bold text-gray-800 text-center mb-6">
+    <div className="flex justify-center items-center bg-gray-100 pb-16 min-h-screen">
+      <div className="px-4 w-full max-w-[500px] md:max-w-[450px]">
+        <h1 className="mb-6 font-bold text-gray-800 text-2xl text-center">
           Reel
         </h1>
 
         <AddPost onPostCreated={handlePostCreated} type="reel" />
 
         <div className="relative mt-8">
-          {currentIndex > 0 && (
-            <button
-              aria-label="Reel trước"
-              className="absolute -top-12 left-1/2 transform -translate-x-1/2 bg-gray-500/80 hover:bg-gray-500 text-white p-3 rounded-full cursor-pointer transition-colors duration-200 z-10"
-              onClick={previousReel}
-              type="button"
-            >
-              <FaArrowUp className="w-4 h-4" />
-            </button>
-          )}
-
-          <div className="flex items-center justify-center">
+          <div className="flex justify-center items-center">
             <PostCard
               post={{ ...reels[currentIndex], type: "reel" }}
               ref={videoRef}
             />
           </div>
 
-          {currentIndex < reels.length - 1 && (
-            <button
-              aria-label="Reel tiếp theo"
-              className="absolute -bottom-12 left-1/2 transform -translate-x-1/2 bg-gray-500/80 hover:bg-gray-500 text-white p-3 rounded-full cursor-pointer transition-colors duration-200 z-10"
-              onClick={nextReel}
-              type="button"
-            >
-              <FaArrowDown className="w-4 h-4" />
-            </button>
-          )}
+          <div className="flex flex-col gap-4 right-0 top-1/2 absolute -translate-y-1/2 translate-x-full ml-4">
+            {currentIndex > 0 && (
+              <button
+                aria-label="Reel trước"
+                className="bg-gray-500/80 hover:bg-gray-500 p-3 rounded-full text-white transition-colors duration-200 cursor-pointer"
+                onClick={previousReel}
+                type="button"
+              >
+                <FaArrowUp className="w-4 h-4" />
+              </button>
+            )}
+
+            {currentIndex < reels.length - 1 && (
+              <button
+                aria-label="Reel tiếp theo"
+                className="bg-gray-500/80 hover:bg-gray-500 p-3 rounded-full text-white transition-colors duration-200 cursor-pointer"
+                onClick={nextReel}
+                type="button"
+              >
+                <FaArrowDown className="w-4 h-4" />
+              </button>
+            )}
+          </div>
         </div>
 
         <div className="flex justify-center gap-2 mt-8">
