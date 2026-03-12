@@ -1,43 +1,69 @@
 import axios from "axios";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import { Loading } from "../components/loading";
+import Modal from "../components/Modal";
 import PostCard from "../components/PostCard";
 import { usePostData } from "../hooks/usePostData";
 import { useUserData } from "../hooks/useUserData";
 
+const followData = async (id) => {
+  const { data } = await axios.get(`/api/user/followdata/${id}`);
+  return { followers: data.followers, following: data.following };
+};
+
 const UserAccount = () => {
   const { id } = useParams();
   const navigate = useNavigate();
-  const { user: currentUser } = useUserData();
+  const { user: currentUser, followUser } = useUserData();
   const { posts, reels } = usePostData();
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [type, setType] = useState("post");
   const [currentReelIndex, setCurrentReelIndex] = useState(0);
+  const [follow, setFollow] = useState(false);
+  const [show, setShow] = useState(false);
+  const [showOne, setShowOne] = useState(false);
+  const [followersData, setFollowersData] = useState([]);
+  const [followingData, setFollowingData] = useState([]);
+
+  const fetchUser = useCallback(async () => {
+    setLoading(true);
+    try {
+      const { data } = await axios.get(`/api/user/${id}`);
+      setUser(data.user);
+    } catch (error) {
+      const message =
+        error?.response?.data?.error || "Không thể tải thông tin người dùng";
+      toast.error(message);
+      navigate("/");
+    } finally {
+      setLoading(false);
+    }
+  }, [id, navigate]);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      setLoading(true);
-      try {
-        const { data } = await axios.get(`/api/user/${id}`);
-        setUser(data.user);
-      } catch (error) {
-        const message =
-          error?.response?.data?.error || "Không thể tải thông tin người dùng";
-        toast.error(message);
-        navigate("/");
-      } finally {
-        setLoading(false);
-      }
-    };
-
     if (id) {
       fetchUser();
     }
-  }, [id, navigate]);
+  }, [id, fetchUser]);
+
+  useEffect(() => {
+    if (id) {
+      const fetchFollowData = async () => {
+        try {
+          const data = await followData(id);
+          setFollowersData(data.followers);
+          setFollowingData(data.following);
+        } catch (error) {
+          console.error("Error fetching follow data:", error);
+        }
+      };
+      fetchFollowData();
+    }
+  }, [id]);
 
   const myPost = posts.filter((post) => post.owner?._id === user?._id);
   const myReels = reels.filter((reel) => reel.owner?._id === user?._id);
@@ -53,6 +79,29 @@ const UserAccount = () => {
   };
 
   const isOwnProfile = currentUser?._id === user?._id;
+
+  useEffect(() => {
+    if (!user || !currentUser) return;
+
+    const hasFollowed = user.followers?.some((follower) => {
+      if (!follower) return false;
+      if (typeof follower === "string") {
+        return follower === currentUser._id;
+      }
+      return follower._id === currentUser._id;
+    });
+
+    setFollow(Boolean(hasFollowed));
+  }, [user, currentUser]);
+
+  const followHandler = async () => {
+    setFollow((prev) => !prev);
+    try {
+      await followUser({ fetchUser, id: user._id });
+    } catch {
+      setFollow((prev) => !prev);
+    }
+  };
 
   if (loading) {
     return <Loading />;
@@ -88,29 +137,51 @@ const UserAccount = () => {
           </p>
 
           <div className="flex gap-8 mb-6">
-            <div className="text-center">
+            <button
+              className="text-center cursor-pointer hover:opacity-80 transition-opacity bg-transparent border-none p-0"
+              onClick={() => setShow(true)}
+              type="button"
+            >
               <p className="font-bold text-gray-800 text-xl">
                 {user.followers?.length || 0}
               </p>
               <p className="text-gray-600 text-sm">Người theo dõi</p>
-            </div>
-            <div className="text-center">
+            </button>
+            <button
+              className="text-center cursor-pointer hover:opacity-80 transition-opacity bg-transparent border-none p-0"
+              onClick={() => setShowOne(true)}
+              type="button"
+            >
               <p className="font-bold text-gray-800 text-xl">
                 {user.following?.length || 0}
               </p>
               <p className="text-gray-600 text-sm">Đang theo dõi</p>
-            </div>
+            </button>
           </div>
 
-          {isOwnProfile && (
-            <button
-              className="bg-blue-500 hover:bg-blue-600 px-6 py-2 rounded-lg font-medium text-white transition-colors cursor-pointer"
-              onClick={() => navigate("/account")}
-              type="button"
-            >
-              Chỉnh sửa hồ sơ
-            </button>
-          )}
+          <div className="flex gap-4">
+            {isOwnProfile ? (
+              <button
+                className="bg-blue-500 hover:bg-blue-600 px-6 py-2 rounded-lg font-medium text-white transition-colors cursor-pointer"
+                onClick={() => navigate("/account")}
+                type="button"
+              >
+                Chỉnh sửa hồ sơ
+              </button>
+            ) : (
+              <button
+                className={`px-6 py-2 rounded-md font-medium text-white transition-colors cursor-pointer ${
+                  follow
+                    ? "bg-red-500 hover:bg-red-600"
+                    : "bg-blue-400 hover:bg-blue-500"
+                }`}
+                onClick={followHandler}
+                type="button"
+              >
+                {follow ? "Bỏ theo dõi" : "Theo dõi"}
+              </button>
+            )}
+          </div>
         </div>
       </div>
 
@@ -190,6 +261,17 @@ const UserAccount = () => {
           <p className="py-8 text-gray-500 text-center">Chưa có reel nào</p>
         )}
       </div>
+
+      {show && (
+        <Modal setShow={setShow} title="Người theo dõi" value={followersData} />
+      )}
+      {showOne && (
+        <Modal
+          setShow={setShowOne}
+          title="Đang theo dõi"
+          value={followingData}
+        />
+      )}
     </div>
   );
 };

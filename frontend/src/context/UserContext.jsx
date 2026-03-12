@@ -83,6 +83,24 @@ export const UserContextProvider = ({ children }) => {
     }
   };
 
+  const followUser = async ({ id, fetchUser }) => {
+    try {
+      const { data } = await axios.post(`/api/user/follow/${id}`);
+      const message =
+        data?.message || "Cập nhật trạng thái theo dõi thành công";
+      toast.success(message);
+      if (typeof fetchUser === "function") {
+        await fetchUser();
+      }
+    } catch (error) {
+      const message =
+        error?.response?.data?.error ||
+        "Không thể cập nhật trạng thái theo dõi, vui lòng thử lại";
+      toast.error(message);
+      throw error;
+    }
+  };
+
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
@@ -91,6 +109,7 @@ export const UserContextProvider = ({ children }) => {
     <UserContext.Provider
       value={{
         fetchUser,
+        followUser,
         isAuth,
         loading,
         loginUser,

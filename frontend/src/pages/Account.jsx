@@ -1,10 +1,17 @@
-import { useState } from "react";
+import axios from "axios";
+import { useEffect, useState } from "react";
 import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 import { useNavigate } from "react-router-dom";
 import { Loading } from "../components/loading";
+import Modal from "../components/Modal";
 import PostCard from "../components/PostCard";
 import { usePostData } from "../hooks/usePostData";
 import { useUserData } from "../hooks/useUserData";
+
+const followData = async (id) => {
+  const { data } = await axios.get(`/api/user/followdata/${id}`);
+  return { followers: data.followers, following: data.following };
+};
 
 const Account = ({ user }) => {
   const { logoutUser } = useUserData();
@@ -12,6 +19,10 @@ const Account = ({ user }) => {
   const navigate = useNavigate();
   const [type, setType] = useState("post");
   const [currentReelIndex, setCurrentReelIndex] = useState(0);
+  const [show, setShow] = useState(false);
+  const [showOne, setShowOne] = useState(false);
+  const [followersData, setFollowersData] = useState([]);
+  const [followingData, setFollowingData] = useState([]);
 
   const myPost = posts.filter((post) => post.owner?._id === user?._id);
   const myReels = reels.filter((reel) => reel.owner?._id === user?._id);
@@ -29,6 +40,21 @@ const Account = ({ user }) => {
   const logoutHandler = () => {
     logoutUser(navigate);
   };
+
+  useEffect(() => {
+    if (user?._id) {
+      const fetchFollowData = async () => {
+        try {
+          const data = await followData(user._id);
+          setFollowersData(data.followers);
+          setFollowingData(data.following);
+        } catch (error) {
+          console.error("Error fetching follow data:", error);
+        }
+      };
+      fetchFollowData();
+    }
+  }, [user?._id]);
 
   if (!user) {
     return <Loading />;
@@ -60,18 +86,26 @@ const Account = ({ user }) => {
           </p>
 
           <div className="flex gap-8 mb-6">
-            <div className="text-center">
+            <button
+              className="text-center cursor-pointer hover:opacity-80 transition-opacity bg-transparent border-none p-0"
+              onClick={() => setShow(true)}
+              type="button"
+            >
               <p className="font-bold text-gray-800 text-xl">
                 {user.followers?.length || 0}
               </p>
               <p className="text-gray-600 text-sm">Người theo dõi</p>
-            </div>
-            <div className="text-center">
+            </button>
+            <button
+              className="text-center cursor-pointer hover:opacity-80 transition-opacity bg-transparent border-none p-0"
+              onClick={() => setShowOne(true)}
+              type="button"
+            >
               <p className="font-bold text-gray-800 text-xl">
                 {user.following?.length || 0}
               </p>
               <p className="text-gray-600 text-sm">Đang theo dõi</p>
-            </div>
+            </button>
           </div>
 
           <button
@@ -160,6 +194,17 @@ const Account = ({ user }) => {
           <p className="py-8 text-gray-500 text-center">Chưa có reel nào</p>
         )}
       </div>
+
+      {show && (
+        <Modal setShow={setShow} title="Người theo dõi" value={followersData} />
+      )}
+      {showOne && (
+        <Modal
+          setShow={setShowOne}
+          title="Đang theo dõi"
+          value={followingData}
+        />
+      )}
     </div>
   );
 };
