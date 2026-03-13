@@ -1,11 +1,12 @@
 import axios from "axios";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
 import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 import { useNavigate, useParams } from "react-router-dom";
 import { Loading } from "../components/loading";
 import Modal from "../components/Modal";
 import PostCard from "../components/PostCard";
+import { SocketContext } from "../context/SocketContext";
 import { usePostData } from "../hooks/usePostData";
 import { useUserData } from "../hooks/useUserData";
 
@@ -19,6 +20,7 @@ const UserAccount = () => {
   const navigate = useNavigate();
   const { user: currentUser, followUser } = useUserData();
   const { posts, reels } = usePostData();
+  const { onlineUsers } = useContext(SocketContext) || {};
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [type, setType] = useState("post");
@@ -121,7 +123,14 @@ const UserAccount = () => {
             src={user.profilePic?.url || "https://via.placeholder.com/180"}
           />
 
-          <h2 className="mb-2 font-bold text-gray-800 text-2xl">{user.name}</h2>
+          <h2 className="mb-2 font-bold text-gray-800 text-2xl">
+            <div className="flex justify-center items-center gap-3">
+              {user.name}
+              {user._id && onlineUsers?.includes(user._id) && (
+                <span className="text-green-500 font-bold text-sm">Online</span>
+              )}
+            </div>
+          </h2>
 
           <p className="mb-1 text-gray-600">{user.email}</p>
 

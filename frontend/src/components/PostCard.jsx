@@ -1,10 +1,11 @@
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
-import { forwardRef, useState } from "react";
+import { forwardRef, useContext, useState } from "react";
 import { toast } from "react-hot-toast";
 import { IoChatbubble, IoHeart, IoHeartOutline, IoSend } from "react-icons/io5";
 import { MdDelete } from "react-icons/md";
 import { Link } from "react-router-dom";
+import { SocketContext } from "../context/SocketContext";
 import { usePostData } from "../hooks/usePostData";
 import { useUserData } from "../hooks/useUserData";
 import SimpleModal from "./SimpleModal";
@@ -25,6 +26,7 @@ const PostCard = forwardRef(({ post }, ref) => {
     loading,
   } = usePostData();
   const { user } = useUserData();
+  const { onlineUsers } = useContext(SocketContext) || {};
 
   const closeModal = () => setShowModal(false);
 
@@ -78,6 +80,7 @@ const PostCard = forwardRef(({ post }, ref) => {
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='16' fill='%239ca3af'%3E%3F%3C/text%3E%3C/svg%3E";
   const ownerAvatar = owner?.profilePic?.url || owner?.avatar || defaultAvatar;
   const ownerProfilePath = owner?._id ? `/user/${owner._id}` : null;
+  const isOwnerOnline = owner?._id && onlineUsers?.includes(owner._id);
 
   const imageUrl =
     post?.post?.url ||
@@ -125,21 +128,26 @@ const PostCard = forwardRef(({ post }, ref) => {
   return (
     <div className="bg-white rounded-lg shadow-sm border border-gray-100 overflow-hidden">
       <div className="p-4 flex items-center gap-3">
-        {ownerProfilePath ? (
-          <Link className="cursor-pointer" to={ownerProfilePath}>
+        <div className="relative">
+          {ownerProfilePath ? (
+            <Link className="cursor-pointer" to={ownerProfilePath}>
+              <img
+                alt={ownerName}
+                className="w-10 h-10 rounded-full object-cover"
+                src={ownerAvatar}
+              />
+            </Link>
+          ) : (
             <img
               alt={ownerName}
               className="w-10 h-10 rounded-full object-cover"
               src={ownerAvatar}
             />
-          </Link>
-        ) : (
-          <img
-            alt={ownerName}
-            className="w-10 h-10 rounded-full object-cover"
-            src={ownerAvatar}
-          />
-        )}
+          )}
+          {isOwnerOnline && (
+            <div className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 rounded-full border-2 border-white" />
+          )}
+        </div>
         <div className="flex-1">
           {ownerProfilePath ? (
             <Link
