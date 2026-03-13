@@ -1,3 +1,12 @@
+// index.js
+//
+// Điểm vào chính của backend mạng xã hội MERN.
+// Thiết lập máy chủ Express với Socket.io cho nhắn tin thời gian thực,
+// kết nối MongoDB, và gắn tất cả các route API.
+//
+// Kiến trúc: Sử dụng Socket.io cho chat trực tiếp và chỉ báo đang gõ.
+// Tất cả các route yêu cầu xác thực qua JWT token lưu trong cookie.
+
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
 import express from "express";

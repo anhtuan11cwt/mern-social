@@ -1,3 +1,12 @@
+// postControllers.js
+//
+// Xử lý tạo/xóa bài viết/reel, thích, và bình luận.
+// Bài viết và reel được lưu trữ trong cùng một bộ sưu tập nhưng với các loại khác nhau.
+// Hình ảnh/video được tải lên Cloudinary; public_id được lưu để xóa.
+//
+// Ủy quyền: Chỉ chủ sở hữu bài viết mới có thể xóa hoặc chỉnh sửa chú thích.
+// Chỉ chủ sở hữu bài viết hoặc tác giả bình luận mới có thể xóa bình luận.
+
 import { cloudinary } from "../config/cloudinary.js";
 import { Post } from "../models/postModel.js";
 import tryCatch from "../utils/tryCatch.js";
@@ -22,6 +31,7 @@ const newPost = tryCatch(async (req, res) => {
     });
   }
 
+  // Xác định loại bài viết từ tham số truy vấn. Mặc định là "post" nếu không phải "reel".
   const type = req.query?.type === "reel" ? "reel" : "post";
 
   const fileUri = urlGenerator(file);
@@ -36,6 +46,7 @@ const newPost = tryCatch(async (req, res) => {
     folder: "mern-social/posts",
   };
 
+  // Reel là video; bài viết là hình ảnh
   if (type === "reel") {
     uploadOptions.resource_type = "video";
   }
@@ -66,6 +77,8 @@ const newPost = tryCatch(async (req, res) => {
   });
 });
 
+// Xóa bài viết và phương tiện của nó khỏi Cloudinary.
+// Chỉ chủ sở hữu bài viết mới có thể xóa. Xóa tệp Cloudinary bằng public_id.
 const deletePost = tryCatch(async (req, res) => {
   const ownerId = req.user?._id;
 
@@ -89,6 +102,7 @@ const deletePost = tryCatch(async (req, res) => {
       .json({ code: 404, error: "Không tìm thấy bài viết với ID này" });
   }
 
+  // Xác minh quyền sở hữu trước khi cho phép xóa
   if (post.owner.toString() !== ownerId.toString()) {
     return res
       .status(403)
@@ -97,6 +111,7 @@ const deletePost = tryCatch(async (req, res) => {
 
   const publicId = post.post?.id;
 
+  // Dọn dẹp phương tiện từ Cloudinary
   if (publicId) {
     await cloudinary.uploader.destroy(publicId);
   }
@@ -109,6 +124,9 @@ const deletePost = tryCatch(async (req, res) => {
   });
 });
 
+// Lấy tất cả bài viết và reel riêng biệt, sắp xếp theo mới nhất trước.
+// Điền dữ liệu chủ sở hữu và người dùng bình luận, loại trừ mật khẩu.
+// Được sử dụng để hiển thị feed.
 const getAllPost = tryCatch(async (_req, res) => {
   const posts = await Post.find({ type: "post" })
     .populate("owner", "-password")
@@ -127,6 +145,8 @@ const getAllPost = tryCatch(async (_req, res) => {
   });
 });
 
+// Bật/tắt thích trên bài viết. Nếu đã thích, xóa. Nếu không, thêm.
+// Trả về mảng thích được cập nhật và số lượng.
 const likeUnlikePost = tryCatch(async (req, res) => {
   const userId = req.user?._id;
 
@@ -150,11 +170,13 @@ const likeUnlikePost = tryCatch(async (req, res) => {
       .json({ code: 404, error: "Không tìm thấy bài viết với ID này" });
   }
 
+  // Kiểm tra xem người dùng đã thích bài viết này chưa
   const likedIndex = post.likes.findIndex(
     (likedUserId) => likedUserId?.toString() === userId.toString(),
   );
 
   if (likedIndex !== -1) {
+    // Người dùng đã thích—xóa thích
     post.likes.splice(likedIndex, 1);
     await post.save();
 
@@ -166,6 +188,7 @@ const likeUnlikePost = tryCatch(async (req, res) => {
     });
   }
 
+  // Người dùng chưa thích—thêm thích
   post.likes.push(userId);
   await post.save();
 
@@ -177,6 +200,8 @@ const likeUnlikePost = tryCatch(async (req, res) => {
   });
 });
 
+// Thêm bình luận vào bài viết. Lưu trữ ID người dùng và tên để hiển thị.
+// Trả về mảng bình luận được cập nhật và số lượng.
 const commentOnPost = tryCatch(async (req, res) => {
   const userId = req.user?._id;
   const userName = req.user?.name;
@@ -226,6 +251,7 @@ const commentOnPost = tryCatch(async (req, res) => {
   });
 });
 
+// Cập nhật chú thích bài viết. Chỉ chủ sở hữu bài viết mới có thể chỉnh sửa.
 const editCaption = tryCatch(async (req, res) => {
   const ownerId = req.user?._id;
 
@@ -258,6 +284,7 @@ const editCaption = tryCatch(async (req, res) => {
       .json({ code: 404, error: "Không tìm thấy bài viết" });
   }
 
+  // Xác minh quyền sở hữu trước khi cho phép chỉnh sửa
   if (post.owner.toString() !== ownerId.toString()) {
     return res
       .status(403)
@@ -274,6 +301,8 @@ const editCaption = tryCatch(async (req, res) => {
   });
 });
 
+// Xóa bình luận từ bài viết.
+// Chủ sở hữu bài viết hoặc tác giả bình luận có thể xóa. Trả về mảng bình luận được cập nhật.
 const deleteComment = tryCatch(async (req, res) => {
   const userId = req.user?._id;
 
@@ -317,6 +346,7 @@ const deleteComment = tryCatch(async (req, res) => {
 
   const comment = post.comments[commentIndex];
 
+  // Cho phép xóa nếu người dùng là chủ sở hữu bài viết HOẶC tác giả bình luận
   const isPostOwner = post.owner.toString() === userId.toString();
   const isCommentOwner = comment.user.toString() === userId.toString();
 

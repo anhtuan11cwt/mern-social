@@ -1,3 +1,12 @@
+// isAuth.js
+//
+// Middleware bảo vệ các route bằng cách xác minh token JWT.
+// Trích xuất token từ cookie httpOnly, xác thực chữ ký,
+// và gắn đối tượng user vào req.user cho các handler phía sau.
+//
+// Trả về 403 nếu không có token, 401 nếu token không hợp lệ hoặc hết hạn.
+// Phân biệt giữa token hết hạn và token bị giả mạo trong thông báo lỗi.
+
 import jwt from "jsonwebtoken";
 import { User } from "../models/userModel.js";
 
@@ -17,8 +26,10 @@ const isAuth = async (req, res, next) => {
         .json({ code: 500, error: "JWT chưa được cấu hình" });
     }
 
+    // Xác minh chữ ký token và thời gian hết hạn
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
+    // Lấy người dùng từ cơ sở dữ liệu và loại trừ trường password
     const user = await User.findById(decoded.userId).select("-password");
 
     if (!user) {
@@ -31,6 +42,7 @@ const isAuth = async (req, res, next) => {
     req.user = user;
     return next();
   } catch (error) {
+    // Phân biệt giữa token hết hạn và token không hợp lệ để cải thiện UX
     if (error.name === "TokenExpiredError") {
       return res
         .status(401)

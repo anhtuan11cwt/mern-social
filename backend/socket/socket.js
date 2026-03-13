@@ -1,3 +1,14 @@
+// socket.js
+//
+// Lớp giao tiếp thời gian thực sử dụng Socket.io.
+// Duy trì một bản đồ userId -> socketId để định tuyến tin nhắn đến người dùng trực tuyến.
+// Phát sóng danh sách người dùng trực tuyến cho tất cả các client được kết nối.
+//
+// Sự kiện:
+// - sendMessage: Chuyển tiếp tin nhắn đến người nhận nếu trực tuyến
+// - typing/stopTyping: Hiển thị chỉ báo đang gõ
+// - disconnect: Dọn dẹp người dùng khỏi bản đồ trực tuyến
+
 import http from "node:http";
 import express from "express";
 import { Server } from "socket.io";
@@ -12,6 +23,7 @@ const io = new Server(server, {
   },
 });
 
+// Ánh xạ userId đến socketId hiện tại của họ để định tuyến tin nhắn
 const userSocketMap = {};
 
 export const getReceiverSocketId = (receiverId) => {
@@ -20,15 +32,20 @@ export const getReceiverSocketId = (receiverId) => {
 
 io.on("connection", (socket) => {
   const userId = socket.handshake.query.userId;
+
+  // Đăng ký người dùng là trực tuyến. Kiểm tra chuỗi "undefined" để ngăn các mục không hợp lệ.
   if (userId !== "undefined") {
     userSocketMap[userId] = socket.id;
   }
 
+  // Phát sóng danh sách người dùng trực tuyến được cập nhật cho tất cả các client
   io.emit("getOnlineUsers", Object.keys(userSocketMap));
 
   socket.on("sendMessage", (data) => {
     const { receiverId, message } = data;
     const receiverSocketId = getReceiverSocketId(receiverId);
+
+    // Chỉ phát nếu người nhận hiện đang trực tuyến
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("receiveMessage", {
         message,
@@ -40,6 +57,7 @@ io.on("connection", (socket) => {
   socket.on("typing", (data) => {
     const { receiverId } = data;
     const receiverSocketId = getReceiverSocketId(receiverId);
+
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("userTyping", {
         senderId: userId,
@@ -50,6 +68,7 @@ io.on("connection", (socket) => {
   socket.on("stopTyping", (data) => {
     const { receiverId } = data;
     const receiverSocketId = getReceiverSocketId(receiverId);
+
     if (receiverSocketId) {
       io.to(receiverSocketId).emit("userStoppedTyping", {
         senderId: userId,
@@ -58,6 +77,7 @@ io.on("connection", (socket) => {
   });
 
   socket.on("disconnect", () => {
+    // Xóa người dùng khỏi bản đồ trực tuyến và thông báo cho tất cả các client
     delete userSocketMap[userId];
     io.emit("getOnlineUsers", Object.keys(userSocketMap));
   });

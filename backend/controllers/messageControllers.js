@@ -1,3 +1,12 @@
+// messageControllers.js
+//
+// Xử lý gửi tin nhắn và truy xuất cho nhắn tin trực tiếp.
+// Tạo hoặc tái sử dụng tài liệu chat để nhóm tin nhắn giữa hai người dùng.
+// Phát thông báo thời gian thực qua Socket.io nếu người nhận trực tuyến.
+//
+// Mô hình Chat: Lưu trữ mảng người dùng và latestMessage cho UI danh sách chat.
+// Mô hình Message: Lưu trữ các tin nhắn riêng lẻ với người gửi và văn bản.
+
 import { Chat } from "../models/chatModel.js";
 import { Message } from "../models/messageModel.js";
 import { getReceiverSocketId, io } from "../socket/socket.js";
@@ -26,6 +35,7 @@ export const sendMessage = async (req, res) => {
         .json({ code: 401, error: "Không tìm thấy thông tin người dùng" });
     }
 
+    // Tìm hoặc tạo chat giữa người gửi và người nhận
     let chat = await Chat.findOne({
       users: { $all: [senderId, receiverId] },
     });
@@ -42,13 +52,14 @@ export const sendMessage = async (req, res) => {
       text: message.trim(),
     });
 
+    // Cập nhật latestMessage của chat cho xem trước danh sách chat
     chat.latestMessage = {
       sender: createdMessage.sender,
       text: createdMessage.text,
     };
     await chat.save();
 
-    // Gửi tin nhắn real-time đến người nhận nếu đang online
+    // Gửi thông báo thời gian thực nếu người nhận trực tuyến
     const receiverSocketId = getReceiverSocketId(receiverId);
     const messageData = {
       ...createdMessage.toObject(),
@@ -68,6 +79,9 @@ export const sendMessage = async (req, res) => {
   }
 };
 
+// Lấy tất cả tin nhắn trong một cuộc trò chuyện với người dùng khác.
+// Trả về mảng trống nếu chưa có chat (cuộc trò chuyện mới).
+// Sắp xếp theo createdAt tăng dần để hiển thị theo thứ tự thời gian.
 export const getAllMessages = async (req, res) => {
   try {
     const otherUserId = req.params.id;
@@ -106,6 +120,9 @@ export const getAllMessages = async (req, res) => {
   }
 };
 
+// Lấy tất cả các chat cho người dùng hiện tại, sắp xếp theo hoạt động gần đây nhất.
+// Lọc ra người dùng hiện tại khỏi mảng users để client chỉ thấy người kia.
+// Được sử dụng để điền danh sách chat sidebar.
 export const getAllChats = async (req, res) => {
   try {
     const currentUserId = req.user?._id;
@@ -120,6 +137,7 @@ export const getAllChats = async (req, res) => {
       .sort({ updatedAt: -1 })
       .populate("users", "_id name profilePic");
 
+    // Xóa người dùng hiện tại khỏi mảng users trong mỗi chat
     const filteredChats = chats.map((chat) => {
       const chatObj = chat.toObject();
       chatObj.users = chatObj.users.filter(
