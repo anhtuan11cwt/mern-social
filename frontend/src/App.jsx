@@ -4,6 +4,7 @@ import NavigationBar from "./components/NavigationBar";
 import NotFound from "./components/NotFound";
 import { useUserData } from "./hooks/useUserData";
 import Account from "./pages/Account";
+import ChatPage from "./pages/ChatPage";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Reels from "./pages/Reels";
@@ -53,13 +54,7 @@ function App() {
           path="/search"
         />
         <Route
-          element={
-            isAuth ? (
-              <div className="pb-16">Trang Trò chuyện</div>
-            ) : (
-              <Navigate replace to="/login" />
-            )
-          }
+          element={isAuth ? <ChatPage /> : <Navigate replace to="/login" />}
           path="/chat"
         />
         <Route element={<NotFound />} path="*" />
