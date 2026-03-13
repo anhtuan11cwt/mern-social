@@ -1,7 +1,8 @@
 import { Search, X } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import Chat from "../components/Chat";
 import MessageContainer from "../components/MessageContainer";
+import { SocketContext } from "../context/SocketContext.js";
 import { ChatData } from "../hooks/useChatData";
 import { useUserData } from "../hooks/useUserData";
 
@@ -19,6 +20,7 @@ const ChatPage = () => {
   } = ChatData() || {};
 
   const { user } = useUserData() || {};
+  const { onlineUsers } = useContext(SocketContext) || {};
   const [searchOpen, setSearchOpen] = useState(false);
   const [query, setQuery] = useState("");
 
@@ -125,15 +127,22 @@ const ChatPage = () => {
                 </div>
               ) : chats?.length ? (
                 <ul className="divide-y divide-gray-100">
-                  {chats.map((chat) => (
-                    <Chat
-                      chat={chat}
-                      key={chat._id}
-                      loggedInUser={user}
-                      selectedChat={selectedChat}
-                      setSelectedChat={setSelectedChat}
-                    />
-                  ))}
+                  {chats.map((chat) => {
+                    const otherUser =
+                      chat.users.find((u) => u._id !== user._id) ||
+                      chat.users[0];
+                    const isOnline = onlineUsers?.includes(otherUser?._id);
+                    return (
+                      <Chat
+                        chat={chat}
+                        isOnline={isOnline}
+                        key={chat._id}
+                        loggedInUser={user}
+                        selectedChat={selectedChat}
+                        setSelectedChat={setSelectedChat}
+                      />
+                    );
+                  })}
                 </ul>
               ) : (
                 <div className="p-4 text-center text-sm text-gray-500">

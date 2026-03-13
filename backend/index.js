@@ -7,11 +7,11 @@ import authRoutes from "./routes/authRoutes.js";
 import messageRoutes from "./routes/messageRoutes.js";
 import postRoutes from "./routes/postRoutes.js";
 import userRoutes from "./routes/userRoutes.js";
+import { app, server } from "./socket/socket.js";
 
 dotenv.config();
 configureCloudinary();
 
-const app = express();
 const PORT = process.env.PORT || 7000;
 
 connectDb();
@@ -28,6 +28,6 @@ app.get("/", (_req, res) => {
   res.send("Máy chủ đang hoạt động");
 });
 
-app.listen(PORT, () => {
+server.listen(PORT, () => {
   console.log(`Máy chủ đang chạy trên cổng ${PORT}`);
 });

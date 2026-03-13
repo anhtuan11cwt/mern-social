@@ -5,17 +5,20 @@ import "./index.css";
 import App from "./App.jsx";
 import { ChatContextProvider } from "./context/ChatContext.jsx";
 import { PostContextProvider } from "./context/PostContext.jsx";
+import { SocketContextProvider } from "./context/SocketContext.jsx";
 import { UserContextProvider } from "./context/UserContext.jsx";
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>
     <BrowserRouter>
       <UserContextProvider>
-        <PostContextProvider>
-          <ChatContextProvider>
-            <App />
-          </ChatContextProvider>
-        </PostContextProvider>
+        <SocketContextProvider>
+          <PostContextProvider>
+            <ChatContextProvider>
+              <App />
+            </ChatContextProvider>
+          </PostContextProvider>
+        </SocketContextProvider>
       </UserContextProvider>
     </BrowserRouter>
   </StrictMode>,

@@ -1,5 +1,6 @@
 import { Chat } from "../models/chatModel.js";
 import { Message } from "../models/messageModel.js";
+import { getReceiverSocketId, io } from "../socket/socket.js";
 
 export const sendMessage = async (req, res) => {
   try {
@@ -46,6 +47,17 @@ export const sendMessage = async (req, res) => {
       text: createdMessage.text,
     };
     await chat.save();
+
+    // Gửi tin nhắn real-time đến người nhận nếu đang online
+    const receiverSocketId = getReceiverSocketId(receiverId);
+    const messageData = {
+      ...createdMessage.toObject(),
+      chatId: chat._id,
+    };
+
+    if (receiverSocketId) {
+      io.to(receiverSocketId).emit("newMessage", messageData);
+    }
 
     return res.status(201).json({ code: 201, data: createdMessage });
   } catch {

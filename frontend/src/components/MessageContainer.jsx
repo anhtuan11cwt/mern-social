@@ -1,11 +1,14 @@
 import axios from "axios";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useContext, useEffect, useRef, useState } from "react";
+import { SocketContext } from "../context/SocketContext.js";
 import Message from "./Message";
 import MessageInput from "./MessageInput";
 
 const MessageContainer = ({ selectedChat, setChats, loggedInUser }) => {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(false);
+  const messageContainerRef = useRef(null);
+  const { socket } = useContext(SocketContext) || {};
 
   const fetchMessages = useCallback(async () => {
     const otherUserId =
@@ -29,6 +32,54 @@ const MessageContainer = ({ selectedChat, setChats, loggedInUser }) => {
     fetchMessages();
   }, [fetchMessages]);
 
+  // Tự động cuộn xuống dưới khi tin nhắn thay đổi
+  useEffect(() => {
+    if (messageContainerRef.current) {
+      // Sử dụng setTimeout để đảm bảo DOM đã được cập nhật
+      setTimeout(() => {
+        messageContainerRef.current.scrollTop =
+          messageContainerRef.current.scrollHeight;
+      }, 100);
+    }
+  }, []);
+
+  // Lắng nghe tin nhắn mới real-time
+  useEffect(() => {
+    if (!socket) {
+      return;
+    }
+
+    const handleNewMessage = (newMessage) => {
+      // Chỉ thêm tin nhắn nếu thuộc cuộc trò chuyện hiện tại
+      if (newMessage.chatId === selectedChat?._id) {
+        setMessages((prev) => [...prev, newMessage]);
+      }
+
+      // Cập nhật danh sách chat với tin nhắn mới nhất
+      if (setChats) {
+        setChats((prevChats) =>
+          prevChats.map((chat) =>
+            chat._id === newMessage.chatId
+              ? {
+                  ...chat,
+                  latestMessage: {
+                    sender: newMessage.sender,
+                    text: newMessage.text,
+                  },
+                }
+              : chat,
+          ),
+        );
+      }
+    };
+
+    socket.on("newMessage", handleNewMessage);
+
+    return () => {
+      socket.off("newMessage", handleNewMessage);
+    };
+  }, [socket, selectedChat?._id, setChats]);
+
   const handleSendMessage = async (text) => {
     if (!selectedChat?._id || !text?.trim()) return;
     try {
@@ -47,8 +98,8 @@ const MessageContainer = ({ selectedChat, setChats, loggedInUser }) => {
         const { data: chatsData } = await axios.get("/api/messages/chat");
         setChats(chatsData?.data || []);
       }
-    } catch (error) {
-      console.error("Failed to send message:", error);
+    } catch {
+      // Xử lý lỗi đã được toast trong context
     }
   };
 
@@ -89,7 +140,10 @@ const MessageContainer = ({ selectedChat, setChats, loggedInUser }) => {
         </span>
       </div>
 
-      <div className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50">
+      <div
+        className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50"
+        ref={messageContainerRef}
+      >
         {loading ? (
           <div className="flex justify-center items-center h-full">
             <div className="animate-pulse flex flex-col items-center">

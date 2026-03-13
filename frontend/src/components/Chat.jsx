@@ -1,6 +1,12 @@
 import { Check } from "lucide-react";
 
-const Chat = ({ chat, setSelectedChat, loggedInUser, selectedChat }) => {
+const Chat = ({
+  chat,
+  setSelectedChat,
+  loggedInUser,
+  selectedChat,
+  isOnline,
+}) => {
   if (!chat || !chat.users || !loggedInUser) return null;
 
   const otherUser =
@@ -34,7 +40,9 @@ const Chat = ({ chat, setSelectedChat, loggedInUser, selectedChat }) => {
               {otherUser?.name?.charAt(0)?.toUpperCase() || "N"}
             </div>
           )}
-          <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+          {isOnline && (
+            <span className="absolute bottom-0 right-0 w-3 h-3 bg-green-500 border-2 border-white rounded-full" />
+          )}
         </div>
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
@@ -42,7 +50,7 @@ const Chat = ({ chat, setSelectedChat, loggedInUser, selectedChat }) => {
               {otherUser?.name || "Người dùng"}
             </span>
             {isLastMessageFromMe && (
-              <Check className="text-blue-500 flex-shrink-0" size={14} />
+              <Check className="text-blue-500 shrink-0" size={14} />
             )}
           </div>
           <p className="text-xs text-gray-500 truncate">
