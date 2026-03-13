@@ -1,3 +1,8 @@
+// NotFound.jsx
+//
+// Trang 404 khi người dùng truy cập URL không tồn tại.
+// Cung cấp nút quay về trang chủ.
+
 import { useNavigate } from "react-router-dom";
 
 const NotFound = () => {

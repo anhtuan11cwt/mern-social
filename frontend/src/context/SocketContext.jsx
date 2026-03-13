@@ -1,3 +1,11 @@
+// SocketContext.jsx
+//
+// Quản lý kết nối WebSocket với server. Cung cấp trạng thái kết nối
+// và danh sách người dùng đang online cho toàn bộ ứng dụng.
+//
+// Tại sao dùng Context: Dữ liệu socket cần được chia sẻ rộng rãi
+// nhưng ít thay đổi. Context tránh prop drilling so với Redux.
+
 import { useEffect, useRef, useState } from "react";
 import { io } from "socket.io-client";
 import { useUserData } from "../hooks/useUserData";
@@ -27,7 +35,8 @@ export const SocketContextProvider = ({ children }) => {
 
     socketRef.current = newSocket;
 
-    // Trì hoãn cập nhật state để tránh render dây chuyền
+    // Trì hoãn cập nhật state để tránh render dây chuyền.
+    // Giữ socketRef.current để có thể cleanup ngay cả khi state chưa cập nhật.
     const timeoutId = setTimeout(() => {
       setSocket(newSocket);
     }, 0);

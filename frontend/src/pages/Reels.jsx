@@ -1,3 +1,8 @@
+// Reels.jsx
+//
+// Trang Reels cho phép người dùng xem và tạo video ngắn.
+// Hỗ trợ điều hướng giữa các reel bằng nút mũi tên hoặc chấm chỉ báo.
+
 import { useEffect, useRef, useState } from "react";
 import { FaArrowDown, FaArrowUp } from "react-icons/fa";
 import AddPost from "../components/AddPost";
@@ -21,6 +26,7 @@ const Reels = () => {
   };
 
   useEffect(() => {
+    // Phát lại video từ đầu khi chuyển reel.
     if (videoRef.current) {
       videoRef.current.currentTime = 0;
       videoRef.current.play().catch(() => {});

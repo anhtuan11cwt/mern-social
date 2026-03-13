@@ -1,3 +1,8 @@
+// Message.jsx
+//
+// Hiển thị một tin nhắn đơn lẻ. Căn phải nếu là tin nhắn của mình,
+// căn trái nếu là tin nhắn từ người khác.
+
 const Message = ({ message, isMyMessage }) => {
   return (
     <div className={`flex ${isMyMessage ? "justify-end" : "justify-start"}`}>

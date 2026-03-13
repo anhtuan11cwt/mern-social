@@ -1,3 +1,8 @@
+// NavigationBar.jsx
+//
+// Thanh điều hướng cố định ở dưới màn hình. Cho phép chuyển giữa các trang
+// chính: Home, Reels, Search, Chat, Account. Icon thay đổi khi active.
+
 import { useState } from "react";
 import {
   AiFillCompass,
@@ -16,6 +21,7 @@ function NavigationBar() {
   const [tab, setTab] = useState(window.location.pathname);
 
   const handleNavigate = (path) => {
+    // Cập nhật tab hiện tại và điều hướng đến trang mới
     setTab(path);
     navigate(path);
   };

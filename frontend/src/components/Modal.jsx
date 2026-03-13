@@ -1,3 +1,8 @@
+// Modal.jsx
+//
+// Modal hiển thị danh sách người dùng (followers, following, likes).
+// Cho phép click vào người dùng để xem profile.
+
 import { Link } from "react-router-dom";
 
 const Modal = ({ value, title, setShow }) => {

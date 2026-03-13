@@ -1,3 +1,8 @@
+// Register.jsx
+//
+// Trang đăng ký cho phép người dùng tạo tài khoản mới.
+// Yêu cầu tên, email, mật khẩu, giới tính và ảnh đại diện.
+
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -20,6 +25,7 @@ const Register = () => {
     const selectedFile = e.target.files[0];
     if (selectedFile) {
       setFile(selectedFile);
+      // Đọc file ảnh và hiển thị xem trước cho người dùng.
       const reader = new FileReader();
       reader.onloadend = () => {
         setFilePreview(reader.result);
@@ -30,9 +36,11 @@ const Register = () => {
 
   const submitHandler = async (e) => {
     e.preventDefault();
+    // Kiểm tra tất cả trường bắt buộc trước khi gửi.
     if (!name || !email || !password || !gender || !file) {
       return;
     }
+    // Gửi dữ liệu dưới dạng FormData để hỗ trợ upload file.
     const formData = new FormData();
     formData.append("name", name);
     formData.append("email", email);

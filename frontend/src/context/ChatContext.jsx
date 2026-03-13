@@ -1,3 +1,12 @@
+// ChatContext.jsx
+//
+// Quản lý trạng thái chat: danh sách người dùng, cuộc trò chuyện,
+// tin nhắn và các hành động liên quan (gửi, tạo chat mới).
+//
+// Tại sao dùng Context: Chat state được sử dụng bởi nhiều component
+// (ChatPage, MessageContainer, MessageInput). Context giữ code sạch
+// hơn Redux cho use case này.
+
 import axios from "axios";
 import { useCallback, useState } from "react";
 import { toast } from "react-hot-toast";

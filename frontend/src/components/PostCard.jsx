@@ -1,3 +1,11 @@
+// PostCard.jsx
+//
+// Hiển thị một bài viết hoặc reel. Bao gồm: avatar/tên tác giả, caption,
+// media (ảnh/video), nút like/comment, danh sách bình luận, và menu edit/delete.
+//
+// Tại sao dùng forwardRef: Cần truyền ref để video player có thể được
+// quản lý bởi component cha (Reels page) để pause/play khi scroll.
+
 import { format } from "date-fns";
 import { MoreHorizontal } from "lucide-react";
 import { forwardRef, useContext, useState } from "react";
@@ -31,6 +39,7 @@ const PostCard = forwardRef(({ post }, ref) => {
   const closeModal = () => setShowModal(false);
 
   const handleDeletePost = async () => {
+    // Xác nhận trước khi xóa để tránh xóa nhầm
     if (window.confirm("Bạn có chắc chắn muốn xóa bài viết này?")) {
       try {
         await deletePost(post._id);
@@ -47,6 +56,7 @@ const PostCard = forwardRef(({ post }, ref) => {
   };
 
   const handleUpdateCaption = async () => {
+    // Kiểm tra caption không rỗng trước khi gửi
     if (!editCaption.trim()) {
       toast.error("Caption không được để trống");
       return;
@@ -66,6 +76,7 @@ const PostCard = forwardRef(({ post }, ref) => {
   };
 
   const likes = post.likes || [];
+  // Dùng likeOptimistic để cập nhật UI ngay, không chờ API response
   const isLiked =
     likeOptimistic !== null
       ? likeOptimistic
@@ -76,6 +87,7 @@ const PostCard = forwardRef(({ post }, ref) => {
   const owner = post?.owner || {};
   const ownerName = owner?.name || owner?.username || "Người dùng";
   // Sử dụng data URI cho placeholder avatar thay vì external URL
+  // để tránh phụ thuộc vào CDN bên ngoài
   const defaultAvatar =
     "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='40' height='40'%3E%3Ccircle cx='20' cy='20' r='20' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' font-size='16' fill='%239ca3af'%3E%3F%3C/text%3E%3C/svg%3E";
   const ownerAvatar = owner?.profilePic?.url || owner?.avatar || defaultAvatar;
@@ -96,6 +108,8 @@ const PostCard = forwardRef(({ post }, ref) => {
   const comments = post?.comments || [];
 
   const likeHandler = async () => {
+    // Cập nhật UI ngay (optimistic update) rồi gửi request
+    // Nếu lỗi, revert lại trạng thái cũ
     const previousLiked =
       likeOptimistic !== null
         ? likeOptimistic
@@ -115,6 +129,7 @@ const PostCard = forwardRef(({ post }, ref) => {
   };
 
   const handleSubmitComment = async (e) => {
+    // Gửi bình luận mới và xóa text input
     e.preventDefault();
     if (!commentText.trim()) return;
 
@@ -280,6 +295,7 @@ const PostCard = forwardRef(({ post }, ref) => {
                 {comments.map((comment, index) => (
                   <div className="flex gap-2" key={comment?._id || index}>
                     {(() => {
+                      // Trích xuất thông tin người bình luận từ nhiều format khác nhau
                       const commenter = comment?.user || comment?.owner || {};
                       const commenterName =
                         comment?.name ||
@@ -294,6 +310,7 @@ const PostCard = forwardRef(({ post }, ref) => {
                         ? `/user/${commenter._id}`
                         : null;
 
+                      // Kiểm tra quyền xóa: chủ bình luận hoặc chủ bài viết
                       const commenterId =
                         commenter?._id ||
                         (typeof comment?.user === "string"
@@ -305,6 +322,7 @@ const PostCard = forwardRef(({ post }, ref) => {
                           (owner?._id && owner._id === user._id));
 
                       const handleDeleteComment = async () => {
+                        // Xác nhận trước khi xóa bình luận
                         if (!comment?._id) return;
                         if (
                           window.confirm(

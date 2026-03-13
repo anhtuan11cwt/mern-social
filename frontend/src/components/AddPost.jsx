@@ -1,3 +1,11 @@
+// AddPost.jsx
+//
+// Form để tạo bài viết hoặc reel mới. Cho phép người dùng chọn file media,
+// thêm chú thích, và xem trước trước khi đăng.
+//
+// Tại sao tách riêng component: Được dùng ở nhiều nơi (trang chủ, modal),
+// nên tách thành component tái sử dụng để tránh lặp code.
+
 import { X } from "lucide-react";
 import { useContext, useState } from "react";
 import { PostContext } from "../context/PostContext.js";
@@ -13,6 +21,7 @@ const AddPost = ({ type = "post", onPostCreated }) => {
   const isReel = type === "reel";
 
   const changeFileHandler = (e) => {
+    // Tạo preview URL từ file được chọn để hiển thị ngay cho người dùng
     const selectedFile = e.target.files[0];
     if (!selectedFile) return;
 
@@ -45,6 +54,7 @@ const AddPost = ({ type = "post", onPostCreated }) => {
   };
 
   const removePreview = () => {
+    // Giải phóng memory của preview URL trước khi xóa
     if (filePreview) {
       URL.revokeObjectURL(filePreview);
     }

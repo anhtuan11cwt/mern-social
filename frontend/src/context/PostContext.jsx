@@ -1,3 +1,11 @@
+// PostContext.jsx
+//
+// Quản lý trạng thái bài viết và reels: danh sách, thích, bình luận,
+// xóa, cập nhật caption. Tự động fetch khi user đăng nhập.
+//
+// Tại sao dùng Context: Post state được dùng ở Home, Reels, Account.
+// Context tránh prop drilling và giữ logic tập trung ở một nơi.
+
 import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
@@ -66,8 +74,8 @@ export const PostContextProvider = ({ children }) => {
       if (setFile) setFile(null);
       if (setFilePreview) setFilePreview(null);
 
-      // Không cần fetchPosts() vì handlePostCreated đã thêm post mới vào state
-      // Chỉ fetch lại nếu cần sync với server (optional)
+      // Không cần fetchPosts() vì handlePostCreated đã thêm post mới vào state.
+      // Chỉ fetch lại nếu cần sync với server (optional).
       // await fetchPosts();
 
       return data?.post;
@@ -88,7 +96,8 @@ export const PostContextProvider = ({ children }) => {
 
     if (isReel) {
       setReels((prev) => {
-        // Tránh duplicate: kiểm tra xem post đã tồn tại chưa
+        // Tránh duplicate: kiểm tra xem post đã tồn tại chưa.
+        // Cần thiết vì socket event có thể fire trước khi API response trả về.
         const exists = prev?.some(
           (p) => (p?._id || p?.id)?.toString() === postId?.toString(),
         );
@@ -99,7 +108,8 @@ export const PostContextProvider = ({ children }) => {
     }
 
     setPosts((prev) => {
-      // Tránh duplicate: kiểm tra xem post đã tồn tại chưa
+      // Tránh duplicate: kiểm tra xem post đã tồn tại chưa.
+      // Cần thiết vì socket event có thể fire trước khi API response trả về.
       const exists = prev?.some(
         (p) => (p?._id || p?.id)?.toString() === postId?.toString(),
       );
@@ -199,7 +209,8 @@ export const PostContextProvider = ({ children }) => {
       const { data } = await axios.put(`/api/post/${id}`, { caption });
       toast.success(data?.message || "Đã cập nhật bài viết");
 
-      // Cập nhật cục bộ thay vì fetch lại toàn bộ
+      // Cập nhật cục bộ thay vì fetch lại toàn bộ.
+      // Nhanh hơn và tránh flicker UI khi cập nhật caption.
       setPosts((prev) =>
         prev.map((post) => (post._id === id ? { ...post, caption } : post)),
       );

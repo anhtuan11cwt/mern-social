@@ -1,3 +1,11 @@
+// Chat.jsx
+//
+// Hiển thị một cuộc trò chuyện trong danh sách chat. Cho thấy avatar,
+// tên người dùng, tin nhắn cuối cùng, và trạng thái online.
+//
+// Tại sao tách riêng: Danh sách chat có nhiều item, nên tách component
+// để dễ quản lý state và tái sử dụng.
+
 import { Check } from "lucide-react";
 
 const Chat = ({
@@ -15,6 +23,7 @@ const Chat = ({
   const isLastMessageFromMe = chat?.latestMessage?.sender === loggedInUser._id;
 
   const formatLastMessage = (text) => {
+    // Cắt ngắn tin nhắn nếu quá dài để hiển thị gọn trong danh sách
     if (!text) return "";
     return text.length > 18 ? `${text.substring(0, 18)}...` : text;
   };

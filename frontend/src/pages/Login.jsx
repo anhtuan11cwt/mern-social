@@ -1,3 +1,8 @@
+// Login.jsx
+//
+// Trang đăng nhập cho phép người dùng xác thực bằng email và mật khẩu.
+// Sau khi đăng nhập thành công, tải danh sách bài viết và chuyển hướng tới trang chủ.
+
 import { Eye, EyeOff } from "lucide-react";
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
@@ -14,6 +19,7 @@ const Login = () => {
 
   const submitHandler = async (e) => {
     e.preventDefault();
+    // Gọi API đăng nhập. Nếu thành công, tải bài viết và chuyển hướng.
     const success = await loginUser({ email, navigate, password });
     if (success) {
       await fetchPosts();

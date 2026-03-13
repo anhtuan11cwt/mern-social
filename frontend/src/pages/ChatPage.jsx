@@ -1,3 +1,9 @@
+// ChatPage.jsx
+//
+// Trang chat hiển thị danh sách cuộc trò chuyện và tin nhắn.
+// Cho phép tìm kiếm người dùng để bắt đầu cuộc trò chuyện mới.
+// Hiển thị trạng thái online của người dùng từ Socket.
+
 import { Search, X } from "lucide-react";
 import { useContext, useEffect, useState } from "react";
 import Chat from "../components/Chat";
@@ -39,11 +45,12 @@ const ChatPage = () => {
   const handleSelectUser = async (selectedUser) => {
     if (!selectedUser?._id) return;
     try {
+      // Tạo hoặc lấy cuộc trò chuyện với người dùng được chọn.
       await createChat?.({ receiverId: selectedUser._id });
       setSearchOpen(false);
       setQuery("");
     } catch {
-      // lỗi đã được toast trong context
+      // Lỗi đã được xử lý và hiển thị toast trong context.
     }
   };
 

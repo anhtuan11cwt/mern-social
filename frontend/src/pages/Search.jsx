@@ -1,3 +1,8 @@
+// Search.jsx
+//
+// Trang tìm kiếm cho phép người dùng tìm kiếm và theo dõi người dùng khác.
+// Hiển thị danh sách người dùng khớp với từ khóa tìm kiếm.
+
 import axios from "axios";
 import { useState } from "react";
 import { Link } from "react-router-dom";
@@ -18,7 +23,9 @@ const Search = () => {
 
     setLoading(true);
     try {
+      // Gọi API tìm kiếm người dùng theo tên.
       const { data } = await axios.get(`/api/user/all?search=${search}`);
+      // Lọc ra người dùng hiện tại khỏi kết quả tìm kiếm.
       const filteredUsers = data.users.filter(
         (user) => user._id !== currentUser?._id,
       );
@@ -45,6 +52,8 @@ const Search = () => {
   };
 
   const isFollowing = (user) => {
+    // Kiểm tra xem người dùng hiện tại có theo dõi người dùng này không.
+    // Hỗ trợ cả follower là string (ID) hoặc object.
     return user.followers?.some((follower) => {
       if (!follower) return false;
       if (typeof follower === "string") {

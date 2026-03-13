@@ -1,3 +1,11 @@
+// UserContext.jsx
+//
+// Quản lý trạng thái xác thực: user hiện tại, trạng thái đăng nhập,
+// và các hành động (login, register, logout, follow, cập nhật profile).
+//
+// Tại sao dùng Context: Auth state cần được truy cập ở nhiều nơi
+// (ProtectedRoute, NavigationBar, Account). Context tránh prop drilling.
+
 import axios from "axios";
 import { useCallback, useEffect, useState } from "react";
 import { Toaster, toast } from "react-hot-toast";

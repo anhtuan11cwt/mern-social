@@ -1,3 +1,8 @@
+// Account.jsx
+//
+// Trang tài khoản cá nhân cho phép người dùng quản lý hồ sơ.
+// Hỗ trợ cập nhật tên, ảnh đại diện, mật khẩu và xem bài viết/reel của chính mình.
+
 import axios from "axios";
 import { useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
@@ -11,6 +16,7 @@ import PostCard from "../components/PostCard";
 import { usePostData } from "../hooks/usePostData";
 import { useUserData } from "../hooks/useUserData";
 
+// Lấy danh sách người theo dõi và đang theo dõi của người dùng.
 const followData = async (id) => {
   const { data } = await axios.get(`/api/user/followdata/${id}`);
   return { followers: data.followers, following: data.following };
@@ -65,6 +71,7 @@ const Account = ({ user }) => {
       return;
     }
     try {
+      // Gọi API cập nhật mật khẩu.
       await axios.post("/api/user/update-password", {
         newPassword,
         oldPassword,
@@ -93,6 +100,7 @@ const Account = ({ user }) => {
     }
     setIsUpdatingPic(true);
     try {
+      // Gửi file ảnh mới lên server.
       const formData = new FormData();
       formData.append("file", file);
       await updateProfilePic(formData, user._id);

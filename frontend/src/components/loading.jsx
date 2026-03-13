@@ -1,3 +1,8 @@
+// loading.jsx
+//
+// Hai component loading: Loading hiển thị full-screen khi tải trang,
+// LoadingAnimation là spinner nhỏ dùng trong button hoặc inline.
+
 export const Loading = () => {
   return (
     <div className="flex items-center justify-center min-h-screen bg-gray-100">

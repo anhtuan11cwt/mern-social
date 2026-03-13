@@ -1,3 +1,8 @@
+// MessageInput.jsx
+//
+// Input field để gửi tin nhắn. Hỗ trợ gửi bằng nút hoặc phím Enter.
+// Phím Shift+Enter để xuống dòng (không gửi).
+
 import { Send } from "lucide-react";
 import { useState } from "react";
 
@@ -11,6 +16,7 @@ const MessageInput = ({ onSendMessage, disabled }) => {
   };
 
   const handleKeyPress = (e) => {
+    // Gửi tin nhắn khi nhấn Enter (không phải Shift+Enter)
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSend();

@@ -1,3 +1,11 @@
+// MessageContainer.jsx
+//
+// Hiển thị toàn bộ cuộc trò chuyện: danh sách tin nhắn, header với info
+// người dùng, và input để gửi tin nhắn mới.
+//
+// Tại sao dùng Socket.io: Cần real-time updates khi có tin nhắn mới từ
+// người khác, không thể chỉ dùng polling.
+
 import axios from "axios";
 import { useCallback, useContext, useEffect, useRef, useState } from "react";
 import { SocketContext } from "../context/SocketContext.js";
@@ -11,6 +19,7 @@ const MessageContainer = ({ selectedChat, setChats, loggedInUser }) => {
   const { socket } = useContext(SocketContext) || {};
 
   const fetchMessages = useCallback(async () => {
+    // Lấy ID người dùng khác từ danh sách users trong chat
     const otherUserId =
       selectedChat?.users?.find((u) => u._id !== loggedInUser?._id)?._id ||
       selectedChat?.users?.[0]?._id;
@@ -35,7 +44,7 @@ const MessageContainer = ({ selectedChat, setChats, loggedInUser }) => {
   // Tự động cuộn xuống dưới khi tin nhắn thay đổi
   useEffect(() => {
     if (messageContainerRef.current) {
-      // Sử dụng setTimeout để đảm bảo DOM đã được cập nhật
+      // Sử dụng setTimeout để đảm bảo DOM đã được cập nhật trước khi cuộn
       setTimeout(() => {
         messageContainerRef.current.scrollTop =
           messageContainerRef.current.scrollHeight;
@@ -43,7 +52,7 @@ const MessageContainer = ({ selectedChat, setChats, loggedInUser }) => {
     }
   }, []);
 
-  // Lắng nghe tin nhắn mới real-time
+  // Lắng nghe tin nhắn mới real-time từ socket
   useEffect(() => {
     if (!socket) {
       return;
@@ -81,6 +90,7 @@ const MessageContainer = ({ selectedChat, setChats, loggedInUser }) => {
   }, [socket, selectedChat?._id, setChats]);
 
   const handleSendMessage = async (text) => {
+    // Kiểm tra chat được chọn và text không rỗng
     if (!selectedChat?._id || !text?.trim()) return;
     try {
       const otherUserId =
@@ -94,6 +104,7 @@ const MessageContainer = ({ selectedChat, setChats, loggedInUser }) => {
         receiverId: otherUserId,
       });
       setMessages((prev) => [...prev, data?.data]);
+      // Cập nhật danh sách chat để hiển thị tin nhắn mới nhất
       if (setChats) {
         const { data: chatsData } = await axios.get("/api/messages/chat");
         setChats(chatsData?.data || []);

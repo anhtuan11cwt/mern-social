@@ -1,9 +1,15 @@
+// SimpleModal.jsx
+//
+// Dropdown menu đơn giản. Đóng tự động khi click bên ngoài.
+// Dùng cho menu tùy chọn (edit, delete) trên bài viết.
+
 import { useEffect, useRef } from "react";
 
 const SimpleModal = ({ isOpen, onClose, children, position = "right" }) => {
   const menuRef = useRef(null);
 
   useEffect(() => {
+    // Đóng modal khi click bên ngoài để cải thiện UX
     const handleClickOutside = (event) => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         onClose();

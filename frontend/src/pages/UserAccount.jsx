@@ -1,3 +1,8 @@
+// UserAccount.jsx
+//
+// Trang hồ sơ người dùng hiển thị thông tin cá nhân, bài viết và reel.
+// Cho phép theo dõi/bỏ theo dõi người dùng khác hoặc chỉnh sửa hồ sơ của chính mình.
+
 import axios from "axios";
 import { useCallback, useContext, useEffect, useState } from "react";
 import { toast } from "react-hot-toast";
@@ -10,6 +15,7 @@ import { SocketContext } from "../context/SocketContext";
 import { usePostData } from "../hooks/usePostData";
 import { useUserData } from "../hooks/useUserData";
 
+// Lấy danh sách người theo dõi và đang theo dõi của người dùng.
 const followData = async (id) => {
   const { data } = await axios.get(`/api/user/followdata/${id}`);
   return { followers: data.followers, following: data.following };
@@ -34,6 +40,7 @@ const UserAccount = () => {
   const fetchUser = useCallback(async () => {
     setLoading(true);
     try {
+      // Lấy thông tin người dùng từ ID trong URL.
       const { data } = await axios.get(`/api/user/${id}`);
       setUser(data.user);
     } catch (error) {
@@ -85,6 +92,8 @@ const UserAccount = () => {
   useEffect(() => {
     if (!user || !currentUser) return;
 
+    // Kiểm tra xem người dùng hiện tại có theo dõi người dùng này không.
+    // Hỗ trợ cả follower là string (ID) hoặc object.
     const hasFollowed = user.followers?.some((follower) => {
       if (!follower) return false;
       if (typeof follower === "string") {
@@ -97,6 +106,8 @@ const UserAccount = () => {
   }, [user, currentUser]);
 
   const followHandler = async () => {
+    // Cập nhật UI ngay lập tức, sau đó gọi API.
+    // Nếu API thất bại, hoàn nguyên trạng thái.
     setFollow((prev) => !prev);
     try {
       await followUser({ fetchUser, id: user._id });
